@@ -1,0 +1,299 @@
+{
+  "info": {
+    "name": "Chibson · API Gateway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Comprueba que el gateway (8080) reenvía a cada microservicio y que CORS responde bien."
+  },
+  "item": [
+    {
+      "name": "1. Rutas",
+      "item": [
+        {
+          "name": "ms-usuarios: login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "200 desde ms-usuarios (8081).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@chibson.cl\",\n  \"password\": \"Admin1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ms-usuarios: notificaciones del admin",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/notificaciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "description": "200."
+          }
+        },
+        {
+          "name": "ms-productos: catálogo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "200 desde ms-productos (8082)."
+          }
+        },
+        {
+          "name": "ms-ventas: carrito",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito"
+              ]
+            },
+            "description": "200 desde ms-ventas (8083)."
+          }
+        },
+        {
+          "name": "ms-soporte: tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "200 desde ms-soporte (8084)."
+          }
+        },
+        {
+          "name": "ms-contenido: noticias publicadas",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/noticias/publicadas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "noticias",
+                "publicadas"
+              ]
+            },
+            "description": "200 desde ms-contenido (8085)."
+          }
+        },
+        {
+          "name": "ms-informes: KPIs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/dashboard/kpis",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "kpis"
+              ]
+            },
+            "description": "200 desde ms-informes (8086)."
+          }
+        },
+        {
+          "name": "Ruta inexistente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/no-existe",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "no-existe"
+              ]
+            },
+            "description": "404: ninguna ruta del gateway la atiende."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. CORS",
+      "item": [
+        {
+          "name": "Preflight desde Live Server (permitido)",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "http://127.0.0.1:5500"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "POST"
+              },
+              {
+                "key": "Access-Control-Request-Headers",
+                "value": "content-type,x-rut-usuario"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "200 con Access-Control-Allow-Origin: http://127.0.0.1:5500. Así pregunta el navegador antes de un fetch."
+          }
+        },
+        {
+          "name": "Preflight desde otro origen (rechazado)",
+          "request": {
+            "method": "OPTIONS",
+            "header": [
+              {
+                "key": "Origin",
+                "value": "http://sitio-ajeno.com"
+              },
+              {
+                "key": "Access-Control-Request-Method",
+                "value": "GET"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "403 Invalid CORS request: ese origen no está en la lista."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "rutAdmin",
+      "value": "12345678-5"
+    }
+  ]
+}

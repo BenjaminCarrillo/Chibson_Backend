@@ -1,0 +1,427 @@
+{
+  "info": {
+    "name": "Chibson · ms-contenido",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Pruebas de las HU-74 a HU-80. Ejecutar en orden con la base vacía."
+  },
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:8085"
+    },
+    {
+      "key": "rutAdmin",
+      "value": "12345678-5"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Publicar noticia (HU-76)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias"
+          ]
+        },
+        "description": "Debe responder 201 con estado ACTIVADA y fechaPublicacion de hoy.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Nuevas cápsulas Vintage Alnico V\",\n  \"contenido\": \"Ya llegaron las pastillas Alnico V para guitarras eléctricas.\",\n  \"imagenUrl\": \"img/noticia2.jpg\",\n  \"categoria\": \"ANUNCIO\",\n  \"publicar\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "2. Guardar borrador (HU-76)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias"
+          ]
+        },
+        "description": "Debe responder 201 con estado BORRADOR y sin fechaPublicacion.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Temporada de descuentos de invierno\",\n  \"contenido\": \"Interfaces de audio y monitores con descuento durante todo el mes.\",\n  \"categoria\": \"PROMOCION\",\n  \"publicar\": false\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "3. Error: sin categoría (HU-80)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias"
+          ]
+        },
+        "description": "Debe responder 400: La categoría es obligatoria.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Sin categoría\",\n  \"contenido\": \"Prueba\",\n  \"publicar\": true\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "4. Ver publicadas (HU-77)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base}}/api/noticias/publicadas",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias",
+            "publicadas"
+          ]
+        },
+        "description": "Solo aparece la noticia 1; el borrador no."
+      }
+    },
+    {
+      "name": "5. Ver detalle público (HU-77)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base}}/api/noticias/publicadas/1",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias",
+            "publicadas",
+            "1"
+          ]
+        },
+        "description": ""
+      }
+    },
+    {
+      "name": "6. Detalle público de un borrador",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base}}/api/noticias/publicadas/2",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias",
+            "publicadas",
+            "2"
+          ]
+        },
+        "description": "Debe responder 404: el borrador no es público."
+      }
+    },
+    {
+      "name": "7. Listado admin filtrado (HU-80)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base}}/api/noticias?categoria=PROMOCION&estado=BORRADOR",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias"
+          ],
+          "query": [
+            {
+              "key": "categoria",
+              "value": "PROMOCION"
+            },
+            {
+              "key": "estado",
+              "value": "BORRADOR"
+            }
+          ]
+        },
+        "description": "Debe devolver solo el borrador."
+      }
+    },
+    {
+      "name": "8. Editar noticia (HU-74)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias/1",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias",
+            "1"
+          ]
+        },
+        "description": "Cambia título y contenido; fechaModificacion se actualiza.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"titulo\": \"Llegaron las cápsulas Vintage Alnico V\",\n  \"contenido\": \"Ya llegaron las pastillas Alnico V. Stock limitado.\",\n  \"imagenUrl\": \"img/noticia2.jpg\",\n  \"categoria\": \"ANUNCIO\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "9. Publicar el borrador (HU-79)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias/2/activar",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias",
+            "2",
+            "activar"
+          ]
+        },
+        "description": "Pasa a ACTIVADA y recibe fecha de publicación."
+      }
+    },
+    {
+      "name": "10. Desactivar noticia (HU-79)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias/1/desactivar",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias",
+            "1",
+            "desactivar"
+          ]
+        },
+        "description": "Deja de aparecer en /publicadas."
+      }
+    },
+    {
+      "name": "11. Eliminar noticia (HU-75)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias/2",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias",
+            "2"
+          ]
+        },
+        "description": "Responde 204. Después, GET /api/noticias/2 responde 404."
+      }
+    },
+    {
+      "name": "12. Ver información institucional (HU-78)",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base}}/api/institucional",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "institucional"
+          ]
+        },
+        "description": "La primera vez viene vacía."
+      }
+    },
+    {
+      "name": "13. Actualizar información institucional (HU-78)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/institucional",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "institucional"
+          ]
+        },
+        "description": "",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mision\": \"Acercar instrumentos de calidad a músicos de todo Chile.\",\n  \"vision\": \"Ser la tienda de instrumentos de referencia del país.\",\n  \"correo\": \"contacto@chibson.cl\",\n  \"telefono\": \"+56 9 1234 5678\",\n  \"direccion\": \"Los Carrera 1234, Concepción\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "14. Error: sin contacto (HU-78)",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "{{rutAdmin}}"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/institucional",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "institucional"
+          ]
+        },
+        "description": "Debe responder 400: falta un dato de contacto.",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"mision\": \"Solo misión\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      }
+    }
+  ]
+}

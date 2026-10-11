@@ -1,0 +1,1160 @@
+{
+  "info": {
+    "name": "Chibson · ms-usuarios",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Pruebas de HU-08 a HU-17 y HU-70 a HU-73. Ejecutar en orden con la base vacía."
+  },
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "rutAdmin",
+      "value": "12345678-5"
+    },
+    {
+      "key": "rutCliente",
+      "value": "9876543-3"
+    },
+    {
+      "key": "token",
+      "value": "pega-aqui-el-token"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Registro e inicio de sesión",
+      "item": [
+        {
+          "name": "Login administrador (HU-09)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "200 con rol ADMINISTRADOR y sus permisos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@chibson.cl\",\n  \"password\": \"Admin1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login con contraseña incorrecta (HU-09)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "401: Correo o contraseña incorrectos (no dice cuál falló).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"admin@chibson.cl\",\n  \"password\": \"mala1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Registrar cliente (HU-08)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/registro",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "201. El RUT queda como 9876543-3 y el rol como CLIENTE. La respuesta no trae la contraseña.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"9.876.543-3\",\n  \"nombres\": \"Juan Andrés\",\n  \"primerApellido\": \"Pérez\",\n  \"segundoApellido\": \"Soto\",\n  \"username\": \"juanp\",\n  \"correo\": \"juan@correo.cl\",\n  \"password\": \"Clave1234\",\n  \"confirmarPassword\": \"Clave1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: RUT inválido (HU-08)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/registro",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "400: El dígito verificador del RUT no es válido.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"9876543-1\",\n  \"nombres\": \"Ana\",\n  \"primerApellido\": \"Rojas\",\n  \"segundoApellido\": \"Vera\",\n  \"username\": \"ana\",\n  \"correo\": \"ana@correo.cl\",\n  \"password\": \"Clave1234\",\n  \"confirmarPassword\": \"Clave1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: correo ya registrado (HU-08)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/registro",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "409: El correo ya está registrado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"15.555.555-6\",\n  \"nombres\": \"Ana\",\n  \"primerApellido\": \"Rojas\",\n  \"segundoApellido\": \"Vera\",\n  \"username\": \"ana\",\n  \"correo\": \"juan@correo.cl\",\n  \"password\": \"Clave1234\",\n  \"confirmarPassword\": \"Clave1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: contraseñas distintas (HU-08)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/registro",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "400: Las contraseñas no coinciden.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"15.555.555-6\",\n  \"nombres\": \"Ana\",\n  \"primerApellido\": \"Rojas\",\n  \"segundoApellido\": \"Vera\",\n  \"username\": \"ana\",\n  \"correo\": \"ana@correo.cl\",\n  \"password\": \"Clave1234\",\n  \"confirmarPassword\": \"Clave9999\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login cliente (HU-09)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "200 con rol CLIENTE y sin permisos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"juan@correo.cl\",\n  \"password\": \"Clave1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Perfil y contraseña",
+      "item": [
+        {
+          "name": "Ver mi perfil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios/perfil",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "perfil"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Actualizar perfil y dirección (HU-12)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios/perfil",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "perfil"
+              ]
+            },
+            "description": "El condominio es opcional; queda vacío.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"Juan Andrés\",\n  \"primerApellido\": \"Pérez\",\n  \"segundoApellido\": \"Soto\",\n  \"username\": \"juanperez\",\n  \"telefono\": \"+56987654321\",\n  \"region\": \"Biobío\",\n  \"ciudadComuna\": \"Concepción\",\n  \"condominio\": \"\",\n  \"numero\": \"1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cambiar contraseña (HU-16)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/password",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "password"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nuevaPassword\": \"Nueva1234\",\n  \"confirmarPassword\": \"Nueva1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Solicitar recuperación (HU-10)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/recuperar?correo=juan@correo.cl",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "recuperar"
+              ],
+              "query": [
+                {
+                  "key": "correo",
+                  "value": "juan@correo.cl"
+                }
+              ]
+            },
+            "description": "Busca en la consola del microservicio la línea [Correo simulado] y copia el token en la variable 'token' de la colección."
+          }
+        },
+        {
+          "name": "Restablecer contraseña (HU-10)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/restablecer",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "restablecer"
+              ]
+            },
+            "description": "200. Si la envías otra vez, responde 400: El enlace ya fue utilizado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"{{token}}\",\n  \"nuevaPassword\": \"Otra12345\",\n  \"confirmarPassword\": \"Otra12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Administración de usuarios",
+      "item": [
+        {
+          "name": "Listar usuarios (HU-70)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "Lista con el rol de cada usuario."
+          }
+        },
+        {
+          "name": "Listar filtrando por rol y texto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios?rol=CLIENTE&texto=juan",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ],
+              "query": [
+                {
+                  "key": "rol",
+                  "value": "CLIENTE"
+                },
+                {
+                  "key": "texto",
+                  "value": "juan"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Error: cliente sin permiso (HU-72)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "403: No tiene permiso para realizar esta acción."
+          }
+        },
+        {
+          "name": "Error: sin sesión (HU-72)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "401: Debe iniciar sesión."
+          }
+        },
+        {
+          "name": "Crear usuario (HU-13)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"20.123.456-5\",\n  \"nombres\": \"María José\",\n  \"primerApellido\": \"González\",\n  \"segundoApellido\": \"Muñoz\",\n  \"username\": \"mariag\",\n  \"correo\": \"maria@chibson.cl\",\n  \"telefono\": \"+56911112222\",\n  \"rol\": \"CLIENTE\",\n  \"password\": \"Inicio1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Editar usuario (HU-14)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios/20123456-5",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "20123456-5"
+              ]
+            },
+            "description": "Cambia usuario y teléfono; el historial guarda ambos cambios.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"María José\",\n  \"primerApellido\": \"González\",\n  \"segundoApellido\": \"Muñoz\",\n  \"username\": \"mariajose\",\n  \"correo\": \"maria@chibson.cl\",\n  \"telefono\": \"+56933334444\",\n  \"rol\": \"CLIENTE\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Asignar rol (HU-70)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios/20123456-5/rol",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "20123456-5",
+                "rol"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rol\": \"ADMINISTRADOR\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Desactivar usuario (HU-15)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios/9876543-3/desactivar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "9876543-3",
+                "desactivar"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Login de usuario desactivado (HU-15)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/auth/login",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "403: La cuenta está desactivada.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"juan@correo.cl\",\n  \"password\": \"Otra12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reactivar usuario (HU-15)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios/9876543-3/reactivar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "9876543-3",
+                "reactivar"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar usuario (HU-17)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/usuarios/20123456-5",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "20123456-5"
+              ]
+            },
+            "description": "Mientras ms-ventas no esté corriendo responde 503: No se pudo verificar si el usuario tiene pedidos."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Roles y permisos",
+      "item": [
+        {
+          "name": "Listar roles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/roles",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "roles"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Listar permisos (HU-71)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/roles/permisos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "permisos"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Dar a CLIENTE el permiso VER_INFORMES (HU-71)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/roles/2/permisos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "2",
+                "permisos"
+              ]
+            },
+            "description": "El rol 2 es CLIENTE y el permiso 8 es VER_INFORMES. Para dejarlo como estaba, envía [].",
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  8\n]",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Verificar permiso (HU-72)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/roles/verificar?rut=9876543-3&permiso=VER_INFORMES",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "roles",
+                "verificar"
+              ],
+              "query": [
+                {
+                  "key": "rut",
+                  "value": "9876543-3"
+                },
+                {
+                  "key": "permiso",
+                  "value": "VER_INFORMES"
+                }
+              ]
+            },
+            "description": "Lo usan los demás microservicios. true después de la petición anterior."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Historial y notificaciones",
+      "item": [
+        {
+          "name": "Registrar acción, como lo hace ms-contenido (HU-73)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/acciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "acciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rutAdministrador\": \"12345678-5\",\n  \"tipo\": \"MODIFICAR\",\n  \"modulo\": \"Noticias\",\n  \"descripcion\": \"Modificó la noticia \\\"Ofertas de invierno\\\"\",\n  \"cambios\": [\n    {\n      \"campo\": \"titulo\",\n      \"valorAnterior\": \"Ofertas\",\n      \"valorNuevo\": \"Ofertas de invierno\"\n    }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ver historial (HU-73)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/acciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "acciones"
+              ]
+            },
+            "description": "Todas las acciones, de la más nueva a la más antigua."
+          }
+        },
+        {
+          "name": "Historial filtrado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/acciones?tipo=MODIFICAR&texto=noticia",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "acciones"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "MODIFICAR"
+                },
+                {
+                  "key": "texto",
+                  "value": "noticia"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Detalle de una acción (HU-73)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/acciones/2",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "acciones",
+                "2"
+              ]
+            },
+            "description": "La acción 2 es la edición de María José: trae los cambios de username y teléfono con su valor anterior y nuevo."
+          }
+        },
+        {
+          "name": "Acciones de un administrador (HU-73)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/acciones/administrador/12345678-5",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "acciones",
+                "administrador",
+                "12345678-5"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Enviar notificación, como lo hará ms-ventas",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/notificaciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rutUsuario\": \"9876543-3\",\n  \"mensaje\": \"Tu pedido #1 fue enviado\",\n  \"referencia\": \"Pedido #1\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ver mis notificaciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/notificaciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Marcar notificación como leída",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/notificaciones/1/leida",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "notificaciones",
+                "1",
+                "leida"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    }
+  ]
+}

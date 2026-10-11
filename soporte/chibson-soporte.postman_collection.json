@@ -1,0 +1,975 @@
+{
+  "info": {
+    "name": "Chibson · ms-soporte",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Pruebas de HU-26 a HU-32. Ejecutar en orden con ms-usuarios (8081) corriendo."
+  },
+  "item": [
+    {
+      "name": "0. Preparación (ms-usuarios)",
+      "item": [
+        {
+          "name": "Registrar cliente de prueba",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/auth/registro",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "201 en ms-usuarios. Si ya existe responde 409; se puede seguir igual.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"13.131.313-6\",\n  \"nombres\": \"Pedro\",\n  \"primerApellido\": \"Lagos\",\n  \"segundoApellido\": \"Fuentes\",\n  \"username\": \"pedrol\",\n  \"correo\": \"pedro@correo.cl\",\n  \"password\": \"Clave1234\",\n  \"confirmarPassword\": \"Clave1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "1. Cliente",
+      "item": [
+        {
+          "name": "Crear ticket (HU-26)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "201. Estado ABIERTO. Guarda el número de ticket en {{ticket}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asunto\": \"Mi pedido no ha llegado\",\n  \"categoria\": \"DESPACHO\",\n  \"descripcion\": \"Compré una guitarra hace 8 días y sigue en estado ENVIADO.\",\n  \"adjuntoUrl\": \"img/comprobante.png\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"ticket\", pm.response.json().numeroTicket);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear segundo ticket sin adjunto (HU-26)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "201. Guarda el número en {{ticket2}}; se usa para eliminar.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asunto\": \"Prueba duplicada\",\n  \"categoria\": \"OTRO\",\n  \"descripcion\": \"Ticket de prueba.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"ticket2\", pm.response.json().numeroTicket);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Error: sin categoría (HU-26)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asunto\": \"Consulta\",\n  \"descripcion\": \"Texto\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: sin descripción (HU-26)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asunto\": \"Consulta\",\n  \"categoria\": \"PAGO\",\n  \"descripcion\": \" \"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: sin sesión (HU-72)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"asunto\": \"Consulta\",\n  \"categoria\": \"PAGO\",\n  \"descripcion\": \"Texto\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mis tickets (HU-27)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/mis-tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "mis-tickets"
+              ]
+            },
+            "description": "200. El más reciente primero."
+          }
+        },
+        {
+          "name": "Error: cerrar un ticket no resuelto (HU-30)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/mis-tickets/{{ticket}}/cerrar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "mis-tickets",
+                "{{ticket}}",
+                "cerrar"
+              ]
+            },
+            "description": "400. Sigue ABIERTO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"calificacion\": 5\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: ver ticket de otro usuario",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/mis-tickets/{{ticket}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "mis-tickets",
+                "{{ticket}}"
+              ]
+            },
+            "description": "404. El administrador no creó este ticket."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Administración",
+      "item": [
+        {
+          "name": "Listar tickets (HU-28)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "200. Del más antiguo al más reciente, con nombre del cliente."
+          }
+        },
+        {
+          "name": "Filtrar por estado (HU-28)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets?estado=ABIERTO",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "ABIERTO"
+                }
+              ]
+            },
+            "description": "200."
+          }
+        },
+        {
+          "name": "Error: cliente sin permiso (HU-72)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets"
+              ]
+            },
+            "description": "403."
+          }
+        },
+        {
+          "name": "Responder y pasar a EN_PROCESO (HU-29)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket}}/respuestas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket}}",
+                "respuestas"
+              ]
+            },
+            "description": "200. La respuesta queda en mensajes, el estado cambia y el cliente recibe una notificación.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contenido\": \"Hola Pedro, estamos revisando con la empresa de despacho.\",\n  \"estado\": \"EN_PROCESO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Responder sin cambiar estado (HU-29)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket}}/respuestas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket}}",
+                "respuestas"
+              ]
+            },
+            "description": "200. Sigue EN_PROCESO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contenido\": \"El courier confirma entrega para mañana.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: respuesta vacía (HU-29)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket}}/respuestas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket}}",
+                "respuestas"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contenido\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Marcar como RESUELTO sin responder (HU-31)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket}}/estado",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket}}",
+                "estado"
+              ]
+            },
+            "description": "200. Se guarda fechaResolucion y se notifica al cliente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"RESUELTO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: mismo estado (HU-31)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket}}/estado",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket}}",
+                "estado"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"RESUELTO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Detalle con la conversación (HU-28)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket}}"
+              ]
+            },
+            "description": "200. Dos mensajes."
+          }
+        },
+        {
+          "name": "Tickets sin resolver (ms-informes)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/abiertos/contar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "abiertos",
+                "contar"
+              ]
+            },
+            "description": "1: el segundo ticket sigue ABIERTO."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Cierre y eliminación",
+      "item": [
+        {
+          "name": "Ver historial de respuestas (HU-27)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/mis-tickets/{{ticket}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "mis-tickets",
+                "{{ticket}}"
+              ]
+            },
+            "description": "200. Estado RESUELTO y las dos respuestas."
+          }
+        },
+        {
+          "name": "Error: calificación fuera de rango (HU-30)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/mis-tickets/{{ticket}}/cerrar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "mis-tickets",
+                "{{ticket}}",
+                "cerrar"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"calificacion\": 7\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cerrar y calificar (HU-30)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/mis-tickets/{{ticket}}/cerrar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "mis-tickets",
+                "{{ticket}}",
+                "cerrar"
+              ]
+            },
+            "description": "200. CERRADO con calificación 5.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"calificacion\": 5,\n  \"comentario\": \"Rápidos y amables.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: responder un ticket cerrado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket}}/respuestas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket}}",
+                "respuestas"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contenido\": \"¿Algo más?\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Eliminar ticket (HU-32)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket2}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket2}}"
+              ]
+            },
+            "description": "204. Queda en el historial de acciones."
+          }
+        },
+        {
+          "name": "El cliente ya no lo ve (HU-32)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/mis-tickets/{{ticket2}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "mis-tickets",
+                "{{ticket2}}"
+              ]
+            },
+            "description": "404."
+          }
+        },
+        {
+          "name": "El administrador tampoco (HU-32)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/tickets/{{ticket2}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "tickets",
+                "{{ticket2}}"
+              ]
+            },
+            "description": "404."
+          }
+        },
+        {
+          "name": "Historial de acciones de Soporte (ms-usuarios, HU-73)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/acciones?texto=ticket",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "acciones"
+              ],
+              "query": [
+                {
+                  "key": "texto",
+                  "value": "ticket"
+                }
+              ]
+            },
+            "description": "200 en ms-usuarios. Respuestas, cambio de estado y eliminación."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:8084"
+    },
+    {
+      "key": "usuarios",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "rutAdmin",
+      "value": "12345678-5"
+    },
+    {
+      "key": "rutCliente",
+      "value": "13131313-6"
+    },
+    {
+      "key": "ticket",
+      "value": ""
+    },
+    {
+      "key": "ticket2",
+      "value": ""
+    }
+  ]
+}

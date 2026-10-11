@@ -1,0 +1,2161 @@
+{
+  "info": {
+    "name": "Chibson · ms-ventas",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Pruebas de HU-20 a HU-25, HU-33 a HU-44 y HU-57 a HU-59. Ejecutar en orden con ms-usuarios (8081) y ms-productos (8082) corriendo y la base chibson_ventas vacía."
+  },
+  "item": [
+    {
+      "name": "0. Preparación (ms-usuarios y ms-productos)",
+      "item": [
+        {
+          "name": "Registrar cliente de prueba",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/auth/registro",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "auth",
+                "registro"
+              ]
+            },
+            "description": "201 en ms-usuarios. Si ya existe responde 409; se puede seguir igual.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"17.777.777-3\",\n  \"nombres\": \"María José\",\n  \"primerApellido\": \"González\",\n  \"segundoApellido\": \"Muñoz\",\n  \"username\": \"mariajg\",\n  \"correo\": \"maria@correo.cl\",\n  \"password\": \"Clave1234\",\n  \"confirmarPassword\": \"Clave1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear guitarra con stock 5",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{productos}}/api/productos",
+              "host": [
+                "{{productos}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "201 en ms-productos. Guarda el SKU en la variable {{sku}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Les Paul Standard\",\n  \"marca\": \"Epiphone\",\n  \"descripcion\": \"Guitarra eléctrica.\",\n  \"precio\": 800000,\n  \"categoria\": \"GUITARRA\",\n  \"imagenUrl\": \"img/lespaul.png\",\n  \"stockDisponible\": 5,\n  \"stockMinimo\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"sku\", pm.response.json().sku);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crear pedal con stock 10",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{productos}}/api/productos",
+              "host": [
+                "{{productos}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "201 en ms-productos. Guarda el SKU en {{sku2}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Pedal Overdrive\",\n  \"marca\": \"Boss\",\n  \"descripcion\": \"Pedal de efecto.\",\n  \"precio\": 90000,\n  \"categoria\": \"GUITARRA\",\n  \"imagenUrl\": \"img/pedal.png\",\n  \"stockDisponible\": 10,\n  \"stockMinimo\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"sku2\", pm.response.json().sku);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Carrito",
+      "item": [
+        {
+          "name": "Ver carro vacío (HU-20)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito"
+              ]
+            },
+            "description": "200. Carro sin productos, total 0."
+          }
+        },
+        {
+          "name": "Error: sin sesión",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito"
+              ]
+            },
+            "description": "401. Falta el encabezado X-Rut-Usuario."
+          }
+        },
+        {
+          "name": "Agregar guitarra (HU-20)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito/items",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito",
+                "items"
+              ]
+            },
+            "description": "200. Guarda el idItem en {{idItem}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{sku}}\",\n  \"cantidad\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const it = pm.response.json().items.find(i => i.sku === pm.collectionVariables.get(\"sku\"));",
+                  "pm.collectionVariables.set(\"idItem\", it.idItem);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Agregar la misma guitarra otra vez (HU-20)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito/items",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito",
+                "items"
+              ]
+            },
+            "description": "200. No se duplica la línea: la cantidad queda en 3.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{sku}}\",\n  \"cantidad\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: más unidades que el stock (HU-20)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito/items",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito",
+                "items"
+              ]
+            },
+            "description": "409. \"Solo quedan 5 unidades de Les Paul Standard\".",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{sku}}\",\n  \"cantidad\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Agregar pedal (HU-20)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito/items",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito",
+                "items"
+              ]
+            },
+            "description": "200. Guarda el idItem del pedal en {{idItem2}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{sku2}}\",\n  \"cantidad\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const it = pm.response.json().items.find(i => i.sku === pm.collectionVariables.get(\"sku2\"));",
+                  "pm.collectionVariables.set(\"idItem2\", it.idItem);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modificar cantidad (HU-21)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito/items/{{idItem}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito",
+                "items",
+                "{{idItem}}"
+              ]
+            },
+            "description": "200. La guitarra queda con 1 unidad y el total se recalcula.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: cantidad cero (HU-21)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito/items/{{idItem}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito",
+                "items",
+                "{{idItem}}"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Eliminar pedal del carro (HU-22)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito/items/{{idItem2}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito",
+                "items",
+                "{{idItem2}}"
+              ]
+            },
+            "description": "200. Queda solo la guitarra."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Compra",
+      "item": [
+        {
+          "name": "Error: perfil sin dirección (HU-25)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/checkout",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "checkout"
+              ]
+            },
+            "description": "400. El cliente recién registrado no tiene dirección en su perfil.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodoPago\": \"DEBITO\",\n  \"usarDireccionDistinta\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: dirección distinta incompleta (HU-25)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/checkout",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "checkout"
+              ]
+            },
+            "description": "400. Falta el número.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodoPago\": \"DEBITO\",\n  \"usarDireccionDistinta\": true,\n  \"region\": \"Valparaíso\",\n  \"ciudadComuna\": \"Viña del Mar\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: sin método de pago (HU-23)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/checkout",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "checkout"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usarDireccionDistinta\": true,\n  \"region\": \"Valparaíso\",\n  \"ciudadComuna\": \"Viña del Mar\",\n  \"numero\": \"456\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Pago rechazado (HU-23)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/checkout",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "checkout"
+              ]
+            },
+            "description": "402. aprobado=false. El pedido queda PENDIENTE y el carro se mantiene. Guarda el número en {{numeroPedido}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodoPago\": \"DEBITO\",\n  \"usarDireccionDistinta\": true,\n  \"region\": \"Valparaíso\",\n  \"ciudadComuna\": \"Viña del Mar\",\n  \"condominio\": \"Torre B depto 31\",\n  \"numero\": \"456\",\n  \"simularRechazo\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"numeroPedido\", pm.response.json().pedido.numeroPedido);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "El carro se mantiene (HU-23)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito"
+              ]
+            },
+            "description": "200. La guitarra sigue en el carro."
+          }
+        },
+        {
+          "name": "Reintentar pago (HU-23, HU-24)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}/pagar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}",
+                "pagar"
+              ]
+            },
+            "description": "201. Pedido PAGADO, comprobante con dos pagos (uno rechazado y uno aprobado), stock descontado y carro vacío. La dirección es la alternativa (alternativa=true).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodoPago\": \"CREDITO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: pagar un pedido ya pagado",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}/pagar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}",
+                "pagar"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodoPago\": \"CREDITO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Agregar dirección al perfil (ms-usuarios, HU-12)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{usuarios}}/api/usuarios/perfil",
+              "host": [
+                "{{usuarios}}"
+              ],
+              "path": [
+                "api",
+                "usuarios",
+                "perfil"
+              ]
+            },
+            "description": "200 en ms-usuarios.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nombres\": \"María José\",\n  \"primerApellido\": \"González\",\n  \"segundoApellido\": \"Muñoz\",\n  \"username\": \"mariajg\",\n  \"telefono\": \"+56911112222\",\n  \"region\": \"Metropolitana\",\n  \"ciudadComuna\": \"Ñuñoa\",\n  \"condominio\": \"\",\n  \"numero\": \"789\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Agregar pedal para la segunda compra",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito/items",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito",
+                "items"
+              ]
+            },
+            "description": "200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{sku2}}\",\n  \"cantidad\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Comprar con la dirección del perfil (HU-23, HU-25)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/checkout",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "checkout"
+              ]
+            },
+            "description": "201. Dirección del perfil (alternativa=false). Guarda el número en {{numeroPedido2}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodoPago\": \"TRANSFERENCIA\",\n  \"usarDireccionDistinta\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"numeroPedido2\", pm.response.json().pedido.numeroPedido);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Error: carro vacío (HU-23)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/checkout",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "checkout"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"metodoPago\": \"DEBITO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Stock descontado (ms-productos, HU-63)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{productos}}/api/inventario/{{sku}}",
+              "host": [
+                "{{productos}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "{{sku}}"
+              ]
+            },
+            "description": "200 en ms-productos. Stock 4."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Mis pedidos (cliente)",
+      "item": [
+        {
+          "name": "Mis pedidos (HU-33)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/mis-pedidos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "mis-pedidos"
+              ]
+            },
+            "description": "200. Dos pedidos, el más reciente primero."
+          }
+        },
+        {
+          "name": "Detalle e historial de mi pedido (HU-33, HU-36)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/mis-pedidos/{{numeroPedido}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "mis-pedidos",
+                "{{numeroPedido}}"
+              ]
+            },
+            "description": "200. Historial: (vacío) → PENDIENTE → PAGADO."
+          }
+        },
+        {
+          "name": "Error: pedido de otro cliente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/mis-pedidos/{{numeroPedido}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "mis-pedidos",
+                "{{numeroPedido}}"
+              ]
+            },
+            "description": "404. El administrador no compró este pedido."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Gestión de pedidos (admin)",
+      "item": [
+        {
+          "name": "Listar pedidos (HU-34)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos"
+              ]
+            },
+            "description": "200. Con nombre del cliente y dirección."
+          }
+        },
+        {
+          "name": "Filtrar por estado (HU-34)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos?estado=PAGADO",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "PAGADO"
+                }
+              ]
+            },
+            "description": "200."
+          }
+        },
+        {
+          "name": "Error: cliente sin permiso (HU-72)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos"
+              ]
+            },
+            "description": "403."
+          }
+        },
+        {
+          "name": "Error: saltar estados (HU-35)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}/estado",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}",
+                "estado"
+              ]
+            },
+            "description": "400. De PAGADO no se puede pasar a ENVIADO.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"ENVIADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Pasar a EN_PROCESO (HU-35, HU-38)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}/estado",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}",
+                "estado"
+              ]
+            },
+            "description": "200. Se notifica al cliente y queda en el historial de acciones.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"EN_PROCESO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Pasar a ENVIADO (HU-35)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}/estado",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}",
+                "estado"
+              ]
+            },
+            "description": "200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"ENVIADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Pasar a ENTREGADO (HU-35)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}/estado",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}",
+                "estado"
+              ]
+            },
+            "description": "200.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"ENTREGADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Detalle con historial (HU-36)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}"
+              ]
+            },
+            "description": "200. Cinco registros en el historial, cada uno con su responsable y fecha."
+          }
+        },
+        {
+          "name": "Error: cancelar sin motivo (HU-37)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido2}}/cancelar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido2}}",
+                "cancelar"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Cancelar pedido (HU-37)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido2}}/cancelar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido2}}",
+                "cancelar"
+              ]
+            },
+            "description": "200. CANCELADO. Como estaba pagado, los 2 pedales vuelven al stock (movimiento CANCELACION).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Cliente solicitó anular la compra\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Movimientos del pedal (ms-productos, HU-64)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{productos}}/api/inventario/{{sku2}}/movimientos",
+              "host": [
+                "{{productos}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "{{sku2}}",
+                "movimientos"
+              ]
+            },
+            "description": "200 en ms-productos. Se ve la VENTA y la CANCELACION."
+          }
+        },
+        {
+          "name": "Error: cancelar un pedido entregado (HU-37)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}/cancelar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}",
+                "cancelar"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: eliminar pedido facturado (HU-44)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/{{numeroPedido}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "{{numeroPedido}}"
+              ]
+            },
+            "description": "409. Ya tiene un pago aprobado."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Devoluciones",
+      "item": [
+        {
+          "name": "Error: pedido no entregado (HU-39)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones"
+              ]
+            },
+            "description": "400. El pedido 2 está cancelado.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroPedido\": {{numeroPedido2}},\n  \"sku\": \"{{sku2}}\",\n  \"motivo\": \"PRODUCTO_DANADO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: producto que no está en el pedido (HU-39)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroPedido\": {{numeroPedido}},\n  \"sku\": \"{{sku2}}\",\n  \"motivo\": \"OTRO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Solicitar devolución (HU-39)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones"
+              ]
+            },
+            "description": "201. Estado PENDIENTE. Guarda el número de seguimiento en {{devolucion}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroPedido\": {{numeroPedido}},\n  \"sku\": \"{{sku}}\",\n  \"motivo\": \"PRODUCTO_DEFECTUOSO\",\n  \"descripcion\": \"La pastilla del puente no suena.\",\n  \"evidenciaUrl\": \"img/evidencia1.jpg\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"devolucion\", pm.response.json().numeroSeguimiento);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Error: devolución repetida (HU-39)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones"
+              ]
+            },
+            "description": "409.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numeroPedido\": {{numeroPedido}},\n  \"sku\": \"{{sku}}\",\n  \"motivo\": \"PRODUCTO_DEFECTUOSO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Mis devoluciones (HU-43)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones/mis-devoluciones",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones",
+                "mis-devoluciones"
+              ]
+            },
+            "description": "200."
+          }
+        },
+        {
+          "name": "Listar pendientes (HU-40)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones?estado=PENDIENTE",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones"
+              ],
+              "query": [
+                {
+                  "key": "estado",
+                  "value": "PENDIENTE"
+                }
+              ]
+            },
+            "description": "200."
+          }
+        },
+        {
+          "name": "Detalle de la solicitud (HU-40)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones/{{devolucion}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones",
+                "{{devolucion}}"
+              ]
+            },
+            "description": "200."
+          }
+        },
+        {
+          "name": "Aprobar devolución (HU-41, HU-43)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones/{{devolucion}}/aprobar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones",
+                "{{devolucion}}",
+                "aprobar"
+              ]
+            },
+            "description": "200. APROBADA. La guitarra vuelve al stock (movimiento DEVOLUCION) y se notifica al cliente."
+          }
+        },
+        {
+          "name": "Error: rechazar una ya resuelta (HU-42)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/devoluciones/{{devolucion}}/rechazar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "devoluciones",
+                "{{devolucion}}",
+                "rechazar"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"motivo\": \"Prueba\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Stock repuesto (ms-productos, HU-64)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{productos}}/api/inventario/{{sku}}/movimientos",
+              "host": [
+                "{{productos}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "{{sku}}",
+                "movimientos"
+              ]
+            },
+            "description": "200 en ms-productos. VENTA -1 y DEVOLUCION +1."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Ventas (admin)",
+      "item": [
+        {
+          "name": "Registro de ventas (HU-57)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/ventas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "ventas"
+              ]
+            },
+            "description": "200. Los dos pedidos con pago aprobado (el cancelado aparece con su estado)."
+          }
+        },
+        {
+          "name": "Filtrar por método y fechas (HU-58)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/ventas?metodo=CREDITO&desde=2026-01-01&hasta=2030-12-31",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "ventas"
+              ],
+              "query": [
+                {
+                  "key": "metodo",
+                  "value": "CREDITO"
+                },
+                {
+                  "key": "desde",
+                  "value": "2026-01-01"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2030-12-31"
+                }
+              ]
+            },
+            "description": "200. Solo la venta pagada con crédito."
+          }
+        },
+        {
+          "name": "Buscar por cliente (HU-58)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/ventas?texto=gonzález",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "ventas"
+              ],
+              "query": [
+                {
+                  "key": "texto",
+                  "value": "gonzález"
+                }
+              ]
+            },
+            "description": "200."
+          }
+        },
+        {
+          "name": "Detalle de venta (HU-59)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/ventas/{{numeroPedido}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                "{{numeroPedido}}"
+              ]
+            },
+            "description": "200."
+          }
+        },
+        {
+          "name": "Error: venta inexistente (HU-59)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/ventas/99999",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "ventas",
+                "99999"
+              ]
+            },
+            "description": "404."
+          }
+        },
+        {
+          "name": "Error: cliente sin permiso VER_VENTAS",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/ventas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "ventas"
+              ]
+            },
+            "description": "403."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Consultas de otros microservicios",
+      "item": [
+        {
+          "name": "¿El cliente tiene pedidos? (ms-usuarios, HU-17)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/cliente/{{rutCliente}}/existe",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "cliente",
+                "{{rutCliente}}",
+                "existe"
+              ]
+            },
+            "description": "true."
+          }
+        },
+        {
+          "name": "¿El producto está en pedidos? (ms-productos, HU-04)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/producto/{{sku}}/existe",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "producto",
+                "{{sku}}",
+                "existe"
+              ]
+            },
+            "description": "true."
+          }
+        },
+        {
+          "name": "¿El cliente recibió el producto? (ms-productos, HU-81)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/pedidos/cliente/{{rutCliente}}/recibio/{{sku}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "pedidos",
+                "cliente",
+                "{{rutCliente}}",
+                "recibio",
+                "{{sku}}"
+              ]
+            },
+            "description": "true: el pedido 1 está ENTREGADO."
+          }
+        },
+        {
+          "name": "Crear reseña ahora que lo recibió (ms-productos, HU-81)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{productos}}/api/resenas",
+              "host": [
+                "{{productos}}"
+              ],
+              "path": [
+                "api",
+                "resenas"
+              ]
+            },
+            "description": "201 en ms-productos.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"{{sku}}\",\n  \"calificacion\": 4,\n  \"titulo\": \"Muy buena\",\n  \"comentario\": \"Suena increíble, aunque tuve que cambiarla.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "usuarios",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "productos",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "rutAdmin",
+      "value": "12345678-5"
+    },
+    {
+      "key": "rutCliente",
+      "value": "17777777-3"
+    },
+    {
+      "key": "sku",
+      "value": ""
+    },
+    {
+      "key": "sku2",
+      "value": ""
+    },
+    {
+      "key": "idItem",
+      "value": ""
+    },
+    {
+      "key": "idItem2",
+      "value": ""
+    },
+    {
+      "key": "numeroPedido",
+      "value": ""
+    },
+    {
+      "key": "numeroPedido2",
+      "value": ""
+    },
+    {
+      "key": "devolucion",
+      "value": ""
+    }
+  ]
+}

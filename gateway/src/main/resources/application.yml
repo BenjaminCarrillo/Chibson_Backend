@@ -1,0 +1,63 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: gateway
+  cloud:
+    gateway:
+      server:
+        webflux:
+          # ---------- CORS: qué páginas pueden llamar al backend desde el navegador ----------
+          globalcors:
+            # Aplica CORS también a las peticiones OPTIONS (preflight) que no calzan con una ruta
+            add-to-simple-url-handler-mapping: true
+            cors-configurations:
+              '[/**]':
+                allowedOrigins:
+                  # Live Server de VS Code abre la página con 127.0.0.1 o con localhost
+                  - "http://localhost:5500"
+                  - "http://127.0.0.1:5500"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - PATCH
+                  - DELETE
+                  - OPTIONS
+                allowedHeaders:
+                  - Content-Type
+                  - X-Rut-Usuario
+                maxAge: 3600
+
+          # ---------- Rutas: qué microservicio atiende cada /api/... ----------
+          routes:
+            - id: ms-usuarios
+              uri: http://localhost:8081
+              predicates:
+                - Path=/api/auth/**,/api/usuarios/**,/api/roles/**,/api/notificaciones/**,/api/acciones/**
+
+            - id: ms-productos
+              uri: http://localhost:8082
+              predicates:
+                - Path=/api/productos/**,/api/inventario/**,/api/resenas/**
+
+            - id: ms-ventas
+              uri: http://localhost:8083
+              predicates:
+                - Path=/api/carrito/**,/api/pedidos/**,/api/devoluciones/**,/api/ventas/**
+
+            - id: ms-soporte
+              uri: http://localhost:8084
+              predicates:
+                - Path=/api/tickets/**
+
+            - id: ms-contenido
+              uri: http://localhost:8085
+              predicates:
+                - Path=/api/noticias/**,/api/institucional/**
+
+            - id: ms-informes
+              uri: http://localhost:8086
+              predicates:
+                - Path=/api/dashboard/**,/api/informes/**

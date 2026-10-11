@@ -1,0 +1,14 @@
+package chibson.soporte.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class NotificacionDTO {
+    private String rutUsuario;
+    private String mensaje;
+    private String referencia;
+}

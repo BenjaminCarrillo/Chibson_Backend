@@ -1,0 +1,1074 @@
+{
+  "info": {
+    "name": "Chibson · ms-productos",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Pruebas de HU-01 a HU-07, HU-19, HU-63, HU-64 y HU-81 a HU-88. Ejecutar en orden con la base vacía y ms-usuarios corriendo."
+  },
+  "variable": [
+    {
+      "key": "base",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "rutAdmin",
+      "value": "12345678-5"
+    },
+    {
+      "key": "rutCliente",
+      "value": "9876543-3"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Catálogo",
+      "item": [
+        {
+          "name": "Categorías disponibles (HU-07)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/categorias",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "categorias"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Crear guitarra (HU-01)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "201. SKU GTR-0001, stock 10, mínimo 3.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Stratocaster Player\",\n  \"marca\": \"Fender\",\n  \"descripcion\": \"Guitarra eléctrica de cuerpo sólido.\",\n  \"precio\": 1500000,\n  \"categoria\": \"GUITARRA\",\n  \"imagenUrl\": \"img/guitarra.png\",\n  \"stockDisponible\": 10,\n  \"stockMinimo\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Crear teclado sin stock mínimo (HU-01)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "201. SKU TEC-0001; el stock mínimo queda en 5, así que aparece como bajo stock.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"P-45\",\n  \"marca\": \"Yamaha\",\n  \"precio\": 450000,\n  \"categoria\": \"TECLAS\",\n  \"imagenUrl\": \"img/teclado.png\",\n  \"stockDisponible\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: precio cero (HU-01)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "400: El precio debe ser mayor que cero.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Stratocaster Player\",\n  \"marca\": \"Fender\",\n  \"descripcion\": \"Guitarra eléctrica de cuerpo sólido.\",\n  \"precio\": 0,\n  \"categoria\": \"GUITARRA\",\n  \"imagenUrl\": \"img/guitarra.png\",\n  \"stockDisponible\": 10,\n  \"stockMinimo\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: sin categoría (HU-07)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "400: La categoría es obligatoria.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Stratocaster Player\",\n  \"marca\": \"Fender\",\n  \"descripcion\": \"Guitarra eléctrica de cuerpo sólido.\",\n  \"precio\": 1500000,\n  \"imagenUrl\": \"img/guitarra.png\",\n  \"stockDisponible\": 10,\n  \"stockMinimo\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Catálogo público (HU-03)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "Solo productos activos, con su stock."
+          }
+        },
+        {
+          "name": "Editar producto y stock (HU-02)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001"
+              ]
+            },
+            "description": "Baja el precio y deja el stock en 2: queda en bajo stock y se registra un ajuste manual de -8.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Stratocaster Player\",\n  \"marca\": \"Fender\",\n  \"descripcion\": \"Guitarra eléctrica de cuerpo sólido.\",\n  \"precio\": 1450000,\n  \"categoria\": \"GUITARRA\",\n  \"imagenUrl\": \"img/guitarra.png\",\n  \"stockDisponible\": 2,\n  \"stockMinimo\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: stock negativo (HU-02)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001"
+              ]
+            },
+            "description": "400: El stock disponible no puede ser negativo. No se guarda nada.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Stratocaster Player\",\n  \"marca\": \"Fender\",\n  \"descripcion\": \"Guitarra eléctrica de cuerpo sólido.\",\n  \"precio\": 1500000,\n  \"categoria\": \"GUITARRA\",\n  \"imagenUrl\": \"img/guitarra.png\",\n  \"stockDisponible\": -1,\n  \"stockMinimo\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Listado admin filtrado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/admin?categoria=GUITARRA&texto=strat",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "categoria",
+                  "value": "GUITARRA"
+                },
+                {
+                  "key": "texto",
+                  "value": "strat"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Desactivar producto (HU-03)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001/desactivar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001",
+                "desactivar"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Detalle público de un inactivo (HU-03)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001"
+              ]
+            },
+            "description": "404: El producto no existe o no está disponible."
+          }
+        },
+        {
+          "name": "Reactivar producto (HU-03)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001/reactivar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001",
+                "reactivar"
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Eliminar producto (HU-04)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/TEC-0001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "TEC-0001"
+              ]
+            },
+            "description": "Mientras ms-ventas no esté corriendo responde 503, porque no puede comprobar si el producto tiene pedidos."
+          }
+        },
+        {
+          "name": "Error: cliente sin permiso (HU-72)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos"
+              ]
+            },
+            "description": "403: No tiene permiso para realizar esta acción.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"modelo\": \"Stratocaster Player\",\n  \"marca\": \"Fender\",\n  \"descripcion\": \"Guitarra eléctrica de cuerpo sólido.\",\n  \"precio\": 1500000,\n  \"categoria\": \"GUITARRA\",\n  \"imagenUrl\": \"img/guitarra.png\",\n  \"stockDisponible\": 10,\n  \"stockMinimo\": 3\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Ficha técnica",
+      "item": [
+        {
+          "name": "Agregar ficha técnica (HU-05)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001/ficha-tecnica",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001",
+                "ficha-tecnica"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"cuerpo:aliso;mastil:arce;diapasón:arce;trastes:22;pastillas:3 single coil;color:sunburst\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: ficha mal formada (HU-05)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001/ficha-tecnica",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001",
+                "ficha-tecnica"
+              ]
+            },
+            "description": "400: El segmento 2 (\"trastes 22\") no tiene el formato clave:valor.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"cuerpo:aliso;trastes 22;color:negro\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Editar ficha técnica (HU-06)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001/ficha-tecnica",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001",
+                "ficha-tecnica"
+              ]
+            },
+            "description": "Reemplaza el texto completo y actualiza fechaModificacionFicha.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"texto\": \"cuerpo:aliso;mastil:arce;diapasón:palorrosa;trastes:22;pastillas:3 single coil;color:negro\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ver ficha interpretada (HU-19)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001"
+              ]
+            },
+            "description": "El campo especificaciones trae una fila por característica: Cuerpo: aliso, Mastil: arce, etc."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Inventario",
+      "item": [
+        {
+          "name": "Historial de movimientos (HU-64)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/inventario/GTR-0001/movimientos",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "GTR-0001",
+                "movimientos"
+              ]
+            },
+            "description": "Stock inicial +10 y ajuste manual -8."
+          }
+        },
+        {
+          "name": "Verificar disponibilidad (carrito)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/inventario/GTR-0001/disponible?cantidad=2",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "GTR-0001",
+                "disponible"
+              ],
+              "query": [
+                {
+                  "key": "cantidad",
+                  "value": "2"
+                }
+              ]
+            },
+            "description": "true; con cantidad=3 responde false."
+          }
+        },
+        {
+          "name": "Descontar stock por venta (HU-63)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/inventario/GTR-0001/descontar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "GTR-0001",
+                "descontar"
+              ]
+            },
+            "description": "Lo hará ms-ventas al confirmarse un pago. Queda 1 unidad.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 1,\n  \"numeroPedido\": 1\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: stock insuficiente (HU-63)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/inventario/GTR-0001/descontar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "GTR-0001",
+                "descontar"
+              ]
+            },
+            "description": "409: Stock insuficiente para GTR-0001: quedan 1 unidades.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 5,\n  \"numeroPedido\": 2\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reponer por cancelación",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/inventario/GTR-0001/reponer",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "GTR-0001",
+                "reponer"
+              ]
+            },
+            "description": "Vuelve a 2 unidades y queda un movimiento CANCELACION ligado al pedido 1.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 1,\n  \"numeroPedido\": 1,\n  \"tipo\": \"CANCELACION\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Stock de varios productos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/inventario/stock?skus=GTR-0001,TEC-0001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "stock"
+              ],
+              "query": [
+                {
+                  "key": "skus",
+                  "value": "GTR-0001,TEC-0001"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Productos con stock bajo (HU-56)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/inventario/bajo-stock",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "inventario",
+                "bajo-stock"
+              ]
+            },
+            "description": "GTR-0001 y TEC-0001, del menor stock al mayor."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Reseñas",
+      "item": [
+        {
+          "name": "Crear reseña (HU-81)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/resenas",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "resenas"
+              ]
+            },
+            "description": "Necesita ms-usuarios y ms-ventas. Mientras ms-ventas no exista responde 503. Para probar el resto, crea una reseña de prueba con el SQL del README.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"sku\": \"GTR-0001\",\n  \"calificacion\": 5,\n  \"titulo\": \"Excelente sonido\",\n  \"comentario\": \"Muy buena terminación.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Reseñas públicas de un producto (HU-82)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/resenas/producto/GTR-0001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "resenas",
+                "producto",
+                "GTR-0001"
+              ]
+            },
+            "description": "Solo aprobadas, con promedio y total."
+          }
+        },
+        {
+          "name": "Listado admin de reseñas (HU-84, HU-88)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/resenas/admin?sku=GTR-0001",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "resenas",
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "sku",
+                  "value": "GTR-0001"
+                }
+              ]
+            },
+            "description": ""
+          }
+        },
+        {
+          "name": "Aprobar reseña (HU-86)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/resenas/1/moderar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "resenas",
+                "1",
+                "moderar"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estado\": \"APROBADA\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Responder reseña (HU-87)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/resenas/1/respuesta",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "resenas",
+                "1",
+                "respuesta"
+              ]
+            },
+            "description": "",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"respuesta\": \"¡Gracias por tu compra!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ocultar reseña (HU-85)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/resenas/1/ocultar",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "resenas",
+                "1",
+                "ocultar"
+              ]
+            },
+            "description": "Deja de aparecer en las reseñas públicas."
+          }
+        },
+        {
+          "name": "Eliminar reseña (HU-83)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/resenas/1",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "resenas",
+                "1"
+              ]
+            },
+            "description": ""
+          }
+        }
+      ]
+    }
+  ]
+}
