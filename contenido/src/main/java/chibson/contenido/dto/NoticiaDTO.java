@@ -19,5 +19,5 @@ public class NoticiaDTO {
     /** Opcional. Si no viene, al publicar se usa la fecha de hoy. */
     private LocalDate fechaPublicacion;
     /** true: se publica de inmediato. false: queda como borrador (HU-76). */
-    private boolean publicar;
+    private Boolean publicar;
 }

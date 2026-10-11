@@ -69,7 +69,8 @@ public class NoticiaService {
         noticia.setContenido(datos.getContenido().trim());
         noticia.setImagenUrl(vacioANull(datos.getImagenUrl()));
         noticia.setCategoria(datos.getCategoria());
-        if (datos.isPublicar()) {
+boolean publicar = Boolean.TRUE.equals(datos.getPublicar());
+if (publicar) {
             noticia.setEstado(EstadoNoticia.ACTIVADA);
             noticia.setFechaPublicacion(datos.getFechaPublicacion() != null ? datos.getFechaPublicacion() : LocalDate.now());
         } else {
@@ -79,7 +80,7 @@ public class NoticiaService {
         noticia.setFechaModificacion(LocalDateTime.now());
         Noticia guardada = noticiaRepository.save(noticia);
 
-        String accion = datos.isPublicar() ? "Publicó" : "Guardó como borrador";
+        String accion = publicar ? "Publicó" : "Guardó como borrador";
         registrar(rutAdministrador, "CREAR", accion + " la noticia \"" + guardada.getTitulo() + "\"", new ArrayList<>());
         return guardada;
     }

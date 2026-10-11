@@ -52,7 +52,8 @@ public class PedidoController {
     @PostMapping("/{numero}/pagar")
     public ResponseEntity<CompraRespuestaDTO> reintentarPago(@RequestHeader(value = RUT, required = false) String rut,
                                                              @PathVariable Long numero, @RequestBody PagoDTO datos) {
-        return responder(pedidoService.reintentarPago(numero, rut, datos.getMetodoPago(), datos.isSimularRechazo()));
+return responder(pedidoService.reintentarPago(numero, rut, datos.getMetodoPago(),
+        Boolean.TRUE.equals(datos.getSimularRechazo())));
     }
 
     /** HU-33 */

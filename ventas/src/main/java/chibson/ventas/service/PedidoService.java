@@ -98,7 +98,7 @@ public class PedidoService {
         agregarHistorial(pedido, null, EstadoPedido.PENDIENTE, cliente.getRut());
         pedido = pedidoRepository.save(pedido);
 
-        return procesarPago(pedido, cliente, datos.getMetodoPago(), datos.isSimularRechazo());
+    return procesarPago(pedido, cliente, datos.getMetodoPago(), Boolean.TRUE.equals(datos.getSimularRechazo()));
     }
 
     /** HU-23 criterio 4: reintentar el pago de un pedido que quedó PENDIENTE. */
@@ -342,7 +342,7 @@ public class PedidoService {
 
     /** HU-25: dirección alternativa solo para este pedido, o la del perfil. */
     private void asignarDireccion(Pedido pedido, UsuarioDTO cliente, CheckoutDTO datos) {
-        if (datos.isUsarDireccionDistinta()) {
+        if (Boolean.TRUE.equals(datos.getUsarDireccionDistinta())) {
             pedido.setRegionEnvio(obligatorio(datos.getRegion(), "la región"));
             pedido.setCiudadComunaEnvio(obligatorio(datos.getCiudadComuna(), "la ciudad o comuna"));
             pedido.setNumeroEnvio(obligatorio(datos.getNumero(), "el número"));

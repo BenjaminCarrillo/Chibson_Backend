@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class PagoDTO {
     private MetodoPago metodoPago;
     /** Solo para pruebas: la pasarela simulada rechaza el pago. */
-    private boolean simularRechazo;
+    private Boolean simularRechazo;
 }

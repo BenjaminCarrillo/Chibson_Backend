@@ -12,12 +12,12 @@ import lombok.NoArgsConstructor;
 public class CheckoutDTO {
     private MetodoPago metodoPago;
     /** true: usa los campos de abajo solo para este pedido. false: usa la dirección del perfil. */
-    private boolean usarDireccionDistinta;
+    private Boolean usarDireccionDistinta;
     private String region;
     private String ciudadComuna;
     /** Opcional. */
     private String condominio;
     private String numero;
     /** Solo para pruebas: la pasarela simulada rechaza el pago. */
-    private boolean simularRechazo;
+    private Boolean simularRechazo;
 }
