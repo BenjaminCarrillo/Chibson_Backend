@@ -14,26 +14,26 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Línea del pedido con el precio que tenía el producto al comprarlo. */
+/**
+ * Producto incluido en una solicitud de devolución, con las unidades que se devuelven (HU-39).
+ * Guarda el precio unitario que el cliente pagó en el pedido para calcular el reembolso (HU-89).
+ */
 @Entity
-@Table(name = "detalle_pedido")
+@Table(name = "item_devolucion")
 @Getter
 @Setter
 @NoArgsConstructor
-public class DetallePedido {
+public class ItemDevolucion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long idDetalle;
+    private Long idItemDevolucion;
 
     @Column(nullable = false, length = 20)
     private String sku;
 
     @Column(nullable = false, length = 100)
     private String nombreProducto;
-
-    @Column(length = 20)
-    private String categoria;
 
     @Column(nullable = false)
     private Integer cantidad;
@@ -43,10 +43,9 @@ public class DetallePedido {
 
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "numero_pedido", nullable = false)
-    private Pedido pedido;
+    @JoinColumn(name = "numero_seguimiento", nullable = false)
+    private SolicitudDevolucion solicitud;
 
-    /** Se incluye en el JSON para mostrarlo en el comprobante. */
     @JsonProperty("subtotal")
     public int subtotal() {
         return cantidad * precioUnitario;

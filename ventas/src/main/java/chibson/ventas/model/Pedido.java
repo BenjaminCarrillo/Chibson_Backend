@@ -71,7 +71,7 @@ public class Pedido {
     private String numeroEnvio;
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<DetallePedido> detalles = new ArrayList<>();
+    private List<ItemPedido> items = new ArrayList<>();
 
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("fecha ASC")
@@ -98,5 +98,18 @@ public class Pedido {
     /** "Facturado" = tiene un pago aprobado (HU-44). */
     public boolean tienePagoAprobado() {
         return pagos.stream().anyMatch(p -> p.getEstado() == EstadoPago.APROBADO);
+    }
+
+    /** Suma de las devoluciones ya reembolsadas de este pedido (HU-57, HU-89). */
+    public int montoReembolsado() {
+        return devoluciones.stream()
+                .filter(d -> d.getEstado() == EstadoDevolucion.REEMBOLSADA)
+                .mapToInt(SolicitudDevolucion::getMontoReembolsado)
+                .sum();
+    }
+
+    /** Total pagado menos lo reembolsado (HU-57 criterio 4). */
+    public int totalNeto() {
+        return total - montoReembolsado();
     }
 }

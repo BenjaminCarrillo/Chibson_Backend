@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
-import chibson.ventas.dto.InventarioDTO;
+import chibson.ventas.dto.StockDTO;
 import chibson.ventas.dto.MovimientoDTO;
 import chibson.ventas.dto.ProductoDTO;
 
@@ -44,21 +44,24 @@ public class ProductosClient {
         }
     }
 
-    /** Descuenta stock por una venta. Si no alcanza, ms-productos responde 409 y se propaga su mensaje. */
-    public InventarioDTO descontarStock(String sku, int cantidad, Long numeroPedido) {
-        MovimientoDTO movimiento = new MovimientoDTO(cantidad, numeroPedido, null);
-        return enviarMovimiento(urlProductos + "/api/inventario/{sku}/descontar", movimiento, sku);
+    /**
+     * Descuenta stock por una venta. Si no alcanza, ms-productos responde 409 y se propaga su mensaje.
+     * rutResponsable queda en el historial de acciones como quien provocó el cambio.
+     */
+    public StockDTO descontarStock(String sku, int cantidad, Long numeroPedido, String rutResponsable) {
+        MovimientoDTO movimiento = new MovimientoDTO(cantidad, numeroPedido, null, rutResponsable);
+        return enviarMovimiento(urlProductos + "/api/productos/{sku}/descontar", movimiento, sku);
     }
 
-    /** Devuelve stock al inventario. tipo = DEVOLUCION o CANCELACION. */
-    public InventarioDTO reponerStock(String sku, int cantidad, Long numeroPedido, String tipo) {
-        MovimientoDTO movimiento = new MovimientoDTO(cantidad, numeroPedido, tipo);
-        return enviarMovimiento(urlProductos + "/api/inventario/{sku}/reponer", movimiento, sku);
+    /** Devuelve stock al producto. tipo = DEVOLUCION o CANCELACION. */
+    public StockDTO reponerStock(String sku, int cantidad, Long numeroPedido, String tipo, String rutResponsable) {
+        MovimientoDTO movimiento = new MovimientoDTO(cantidad, numeroPedido, tipo, rutResponsable);
+        return enviarMovimiento(urlProductos + "/api/productos/{sku}/reponer", movimiento, sku);
     }
 
-    private InventarioDTO enviarMovimiento(String url, MovimientoDTO movimiento, String sku) {
+    private StockDTO enviarMovimiento(String url, MovimientoDTO movimiento, String sku) {
         try {
-            return restTemplate.postForObject(url, movimiento, InventarioDTO.class, sku);
+            return restTemplate.postForObject(url, movimiento, StockDTO.class, sku);
         } catch (HttpClientErrorException e) {
             throw new ResponseStatusException(e.getStatusCode(), extraerMensaje(e));
         } catch (RestClientException e) {

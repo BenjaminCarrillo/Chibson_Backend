@@ -13,4 +13,6 @@ public class MovimientoDTO {
     private Long numeroPedido;
     /** Solo al reponer: DEVOLUCION o CANCELACION. */
     private String tipo;
+    /** Quién provocó el cambio de stock; queda en el historial de acciones. */
+    private String rutResponsable;
 }

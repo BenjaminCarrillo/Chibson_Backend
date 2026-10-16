@@ -1,6 +1,6 @@
 package chibson.ventas.dto;
 
-import chibson.ventas.model.DetallePedido;
+import chibson.ventas.model.ItemPedido;
 import chibson.ventas.model.EstadoPedido;
 import chibson.ventas.model.HistorialEstadoPedido;
 import chibson.ventas.model.MetodoPago;
@@ -29,7 +29,7 @@ public class PedidoDTO {
     private MetodoPago metodoPago;
     private DireccionDTO direccion;
     private String motivoCancelacion;
-    private List<DetallePedido> detalles;
+    private List<ItemPedido> items;
     private List<HistorialEstadoPedido> historial;
     private List<Pago> pagos;
 }

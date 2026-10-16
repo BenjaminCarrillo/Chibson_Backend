@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Producto y cantidad que el cliente agrega o modifica en el carro (HU-20, HU-21). */
+/** Producto y cantidad que el frontend envía al comprar (HU-20 a HU-23). */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

@@ -16,7 +16,7 @@ public interface PedidoRepository extends JpaRepository<Pedido, Long> {
 
     boolean existsByRutCliente(String rutCliente);
 
-    boolean existsByDetallesSku(String sku);
+    boolean existsByItemsSku(String sku);
 
-    boolean existsByRutClienteAndEstadoAndDetallesSku(String rutCliente, EstadoPedido estado, String sku);
+    boolean existsByRutClienteAndEstadoAndItemsSku(String rutCliente, EstadoPedido estado, String sku);
 }

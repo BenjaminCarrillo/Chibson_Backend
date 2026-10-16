@@ -52,8 +52,8 @@ public class PedidoController {
     @PostMapping("/{numero}/pagar")
     public ResponseEntity<CompraRespuestaDTO> reintentarPago(@RequestHeader(value = RUT, required = false) String rut,
                                                              @PathVariable Long numero, @RequestBody PagoDTO datos) {
-return responder(pedidoService.reintentarPago(numero, rut, datos.getMetodoPago(),
-        Boolean.TRUE.equals(datos.getSimularRechazo())));
+        return responder(pedidoService.reintentarPago(numero, rut, datos.getMetodoPago(),
+                Boolean.TRUE.equals(datos.getSimularRechazo())));
     }
 
     /** HU-33 */
@@ -125,7 +125,7 @@ return responder(pedidoService.reintentarPago(numero, rut, datos.getMetodoPago()
         return pedidoService.clienteRecibioProducto(rut, sku);
     }
 
-    /** ms-informes (HU-45 a HU-55). Fechas AAAA-MM-DD, opcionales. */
+    /** ms-informes: reportes (HU-45 a HU-50). Fechas AAAA-MM-DD, opcionales. */
     @GetMapping("/resumen")
     public List<PedidoResumenDTO> resumen(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,

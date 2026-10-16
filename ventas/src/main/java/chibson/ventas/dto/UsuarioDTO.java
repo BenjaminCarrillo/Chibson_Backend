@@ -1,11 +1,14 @@
 package chibson.ventas.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /** Datos del cliente que entrega ms-usuarios: nombre, estado y dirección del perfil. */
 @Data
+@JsonIgnoreProperties(ignoreUnknown = true)
 @NoArgsConstructor
 @AllArgsConstructor
 public class UsuarioDTO {

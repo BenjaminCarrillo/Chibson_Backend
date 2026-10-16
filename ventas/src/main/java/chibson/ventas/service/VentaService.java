@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import chibson.ventas.client.UsuariosClient;
+import chibson.ventas.dto.ReembolsoDTO;
 import chibson.ventas.dto.UsuarioDTO;
 import chibson.ventas.dto.VentaDTO;
 import chibson.ventas.model.MetodoPago;
@@ -20,7 +21,7 @@ import chibson.ventas.repository.PedidoRepository;
 
 /**
  * Registro de ventas (HU-57 a HU-59). Una venta es un pedido con pago aprobado;
- * el número de venta es el número de pedido.
+ * el número de venta es el número de pedido. Cada venta muestra lo reembolsado y su total neto.
  */
 @Service
 public class VentaService {
@@ -65,7 +66,8 @@ public class VentaService {
     private VentaDTO aDTO(Pedido p, UsuarioDTO cliente) {
         return new VentaDTO(p.getNumeroPedido(), p.getRutCliente(),
                 cliente == null ? null : cliente.nombreCompleto(), p.getFecha(), p.getTotal(),
-                p.getMetodoPago(), p.getEstado(), new ArrayList<>(p.getDetalles()));
+                p.montoReembolsado(), p.totalNeto(), p.getMetodoPago(), p.getEstado(),
+                new ArrayList<>(p.getItems()), ReembolsoDTO.delPedido(p));
     }
 
     private boolean coincideTexto(VentaDTO v, String texto) {

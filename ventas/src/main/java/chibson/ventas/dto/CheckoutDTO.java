@@ -1,5 +1,7 @@
 package chibson.ventas.dto;
 
+import java.util.List;
+
 import chibson.ventas.model.MetodoPago;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -10,6 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CheckoutDTO {
+    /** Productos y cantidades que el cliente eligió en el frontend. */
+    private List<ItemDTO> items;
     private MetodoPago metodoPago;
     /** true: usa los campos de abajo solo para este pedido. false: usa la dirección del perfil. */
     private Boolean usarDireccionDistinta;

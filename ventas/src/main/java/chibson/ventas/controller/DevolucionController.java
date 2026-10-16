@@ -56,7 +56,7 @@ public class DevolucionController {
         return devolucionService.listar(rut, estado);
     }
 
-    /** ms-informes (HU-52) */
+    /** ms-informes: resumen general (HU-50) */
     @GetMapping("/pendientes/contar")
     public long contarPendientes() {
         return devolucionService.contarPendientes();
@@ -81,5 +81,12 @@ public class DevolucionController {
     public SolicitudDevolucion rechazar(@RequestHeader(value = RUT, required = false) String rut,
                                         @PathVariable Long numero, @RequestBody MotivoDTO datos) {
         return devolucionService.rechazar(numero, datos.getMotivo(), rut);
+    }
+
+    /** HU-89: marca como reembolsada una devolución aprobada. */
+    @PatchMapping("/{numero}/reembolsar")
+    public SolicitudDevolucion reembolsar(@RequestHeader(value = RUT, required = false) String rut,
+                                          @PathVariable Long numero) {
+        return devolucionService.reembolsar(numero, rut);
     }
 }

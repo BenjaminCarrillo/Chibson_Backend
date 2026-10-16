@@ -1,6 +1,7 @@
 package chibson.ventas.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -13,12 +14,16 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Producto comprado dentro de un pedido, con el precio que tenía al comprarlo.
+ * Llega directo desde el frontend al pagar: ya no hay carrito en el backend.
+ */
 @Entity
-@Table(name = "item_carrito")
+@Table(name = "item_pedido")
 @Getter
 @Setter
 @NoArgsConstructor
-public class ItemCarrito {
+public class ItemPedido {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,9 +32,11 @@ public class ItemCarrito {
     @Column(nullable = false, length = 20)
     private String sku;
 
-    /** Nombre del producto para mostrarlo en el carro sin consultar a ms-productos cada vez. */
     @Column(nullable = false, length = 100)
     private String nombreProducto;
+
+    @Column(length = 20)
+    private String categoria;
 
     @Column(nullable = false)
     private Integer cantidad;
@@ -39,9 +46,11 @@ public class ItemCarrito {
 
     @JsonIgnore
     @ManyToOne
-    @JoinColumn(name = "id_carrito", nullable = false)
-    private Carrito carrito;
+    @JoinColumn(name = "numero_pedido", nullable = false)
+    private Pedido pedido;
 
+    /** Se incluye en el JSON para mostrarlo en el comprobante. */
+    @JsonProperty("subtotal")
     public int subtotal() {
         return cantidad * precioUnitario;
     }

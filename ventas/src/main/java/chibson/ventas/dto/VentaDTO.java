@@ -1,6 +1,6 @@
 package chibson.ventas.dto;
 
-import chibson.ventas.model.DetallePedido;
+import chibson.ventas.model.ItemPedido;
 import chibson.ventas.model.EstadoPedido;
 import chibson.ventas.model.MetodoPago;
 import lombok.AllArgsConstructor;
@@ -20,7 +20,13 @@ public class VentaDTO {
     private String nombreCliente;
     private LocalDateTime fecha;
     private Integer total;
+    /** 0 si no tiene devoluciones reembolsadas (HU-57 criterio 4). */
+    private Integer montoReembolsado;
+    /** total - montoReembolsado */
+    private Integer totalNeto;
     private MetodoPago metodoPago;
     private EstadoPedido estadoPedido;
-    private List<DetallePedido> detalles;
+    private List<ItemPedido> items;
+    /** Productos y cantidades reembolsados (HU-59 criterio 4); vacío si no hay. */
+    private List<ReembolsoDTO> reembolsos;
 }

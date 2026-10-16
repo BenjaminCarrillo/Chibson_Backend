@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -19,17 +20,17 @@ import chibson.ventas.dto.CheckoutDTO;
 import chibson.ventas.dto.CompraRespuestaDTO;
 import chibson.ventas.dto.DetalleCambioDTO;
 import chibson.ventas.dto.DireccionDTO;
+import chibson.ventas.dto.ItemDTO;
 import chibson.ventas.dto.PedidoDTO;
 import chibson.ventas.dto.PedidoResumenDTO;
+import chibson.ventas.dto.ReembolsoDTO;
 import chibson.ventas.dto.ProductoDTO;
 import chibson.ventas.dto.RegistroAccionDTO;
 import chibson.ventas.dto.UsuarioDTO;
-import chibson.ventas.model.Carrito;
-import chibson.ventas.model.DetallePedido;
+import chibson.ventas.model.ItemPedido;
 import chibson.ventas.model.EstadoPago;
 import chibson.ventas.model.EstadoPedido;
 import chibson.ventas.model.HistorialEstadoPedido;
-import chibson.ventas.model.ItemCarrito;
 import chibson.ventas.model.MetodoPago;
 import chibson.ventas.model.Pago;
 import chibson.ventas.model.Pedido;
@@ -42,16 +43,14 @@ public class PedidoService {
     private static final String MODULO = "Pedidos";
 
     private final PedidoRepository pedidoRepository;
-    private final CarritoService carritoService;
     private final ProductosClient productosClient;
     private final UsuariosClient usuariosClient;
     private final int costoEnvio;
 
-    public PedidoService(PedidoRepository pedidoRepository, CarritoService carritoService,
+    public PedidoService(PedidoRepository pedidoRepository,
                          ProductosClient productosClient, UsuariosClient usuariosClient,
                          @Value("${ventas.costo-envio}") int costoEnvio) {
         this.pedidoRepository = pedidoRepository;
-        this.carritoService = carritoService;
         this.productosClient = productosClient;
         this.usuariosClient = usuariosClient;
         this.costoEnvio = costoEnvio;
@@ -60,8 +59,9 @@ public class PedidoService {
     // ---------- Compra (cliente) ----------
 
     /**
-     * HU-23 y HU-25: crea el pedido con lo que hay en el carro y lo intenta pagar.
-     * Si el pago se rechaza, el pedido queda PENDIENTE y el carro se mantiene para reintentar.
+     * HU-23 y HU-25: crea el pedido con los productos que envía el frontend y lo intenta pagar.
+     * El carro vive solo en el frontend; aquí se valida cada producto contra el precio y el stock
+     * actuales. Si el pago se rechaza, el pedido queda PENDIENTE para reintentar.
      */
     @Transactional
     public CompraRespuestaDTO comprar(String rutHeader, CheckoutDTO datos) {
@@ -69,10 +69,7 @@ public class PedidoService {
         if (datos.getMetodoPago() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe seleccionar un método de pago");
         }
-        Carrito carrito = carritoService.obtener(cliente.getRut());
-        if (carrito.getItems().isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Su carro está vacío");
-        }
+        Map<String, Integer> cantidades = agruparItems(datos.getItems());
 
         Pedido pedido = new Pedido();
         pedido.setRutCliente(cliente.getRut());
@@ -81,24 +78,24 @@ public class PedidoService {
         pedido.setMetodoPago(datos.getMetodoPago());
         asignarDireccion(pedido, cliente, datos);
 
-        // Precio y stock se vuelven a consultar: pudieron cambiar desde que se agregó al carro
-        for (ItemCarrito item : carrito.getItems()) {
-            ProductoDTO producto = productosClient.obtenerProducto(item.getSku());
-            validarStock(producto, item.getCantidad());
-            DetallePedido detalle = new DetallePedido();
-            detalle.setSku(producto.getSku());
-            detalle.setNombreProducto(producto.getModelo());
-            detalle.setCategoria(producto.getCategoria());
-            detalle.setCantidad(item.getCantidad());
-            detalle.setPrecioUnitario(producto.getPrecio());
-            detalle.setPedido(pedido);
-            pedido.getDetalles().add(detalle);
+        // Precio y stock se consultan a ms-productos: lo que diga el frontend no se usa como precio
+        for (Map.Entry<String, Integer> entrada : cantidades.entrySet()) {
+            ProductoDTO producto = productosClient.obtenerProducto(entrada.getKey());
+            validarStock(producto, entrada.getValue());
+            ItemPedido item = new ItemPedido();
+            item.setSku(producto.getSku());
+            item.setNombreProducto(producto.getModelo());
+            item.setCategoria(producto.getCategoria());
+            item.setCantidad(entrada.getValue());
+            item.setPrecioUnitario(producto.getPrecio());
+            item.setPedido(pedido);
+            pedido.getItems().add(item);
         }
         calcularMontos(pedido);
         agregarHistorial(pedido, null, EstadoPedido.PENDIENTE, cliente.getRut());
         pedido = pedidoRepository.save(pedido);
 
-    return procesarPago(pedido, cliente, datos.getMetodoPago(), Boolean.TRUE.equals(datos.getSimularRechazo()));
+        return procesarPago(pedido, cliente, datos.getMetodoPago(), Boolean.TRUE.equals(datos.getSimularRechazo()));
     }
 
     /** HU-23 criterio 4: reintentar el pago de un pedido que quedó PENDIENTE. */
@@ -132,7 +129,7 @@ public class PedidoService {
             pedido.getPagos().add(pago);
             pedido = pedidoRepository.save(pedido);
             return new CompraRespuestaDTO(false,
-                    "El pago fue rechazado: " + pago.getMotivoRechazo() + ". Su carro se mantiene para reintentar",
+                    "El pago fue rechazado: " + pago.getMotivoRechazo() + ". El pedido quedó pendiente para reintentar el pago",
                     aDTO(pedido, cliente));
         }
 
@@ -143,7 +140,6 @@ public class PedidoService {
         pedido.setEstado(EstadoPedido.PAGADO);
         pedido = pedidoRepository.save(pedido);
 
-        carritoService.vaciar(cliente.getRut());
         usuariosClient.enviarNotificacion(cliente.getRut(),
                 "Su compra fue aprobada. Pedido #" + pedido.getNumeroPedido() + " por $" + pedido.getTotal(),
                 "pedido:" + pedido.getNumeroPedido());
@@ -155,16 +151,18 @@ public class PedidoService {
      * la última unidad), se repone lo ya descontado y se rechaza la compra.
      */
     private void descontarStock(Pedido pedido) {
-        List<DetallePedido> descontados = new ArrayList<>();
+        List<ItemPedido> descontados = new ArrayList<>();
         try {
-            for (DetallePedido d : pedido.getDetalles()) {
-                productosClient.descontarStock(d.getSku(), d.getCantidad(), pedido.getNumeroPedido());
+            for (ItemPedido d : pedido.getItems()) {
+                productosClient.descontarStock(d.getSku(), d.getCantidad(), pedido.getNumeroPedido(),
+                        pedido.getRutCliente());
                 descontados.add(d);
             }
         } catch (ResponseStatusException e) {
-            for (DetallePedido d : descontados) {
+            for (ItemPedido d : descontados) {
                 try {
-                    productosClient.reponerStock(d.getSku(), d.getCantidad(), pedido.getNumeroPedido(), "CANCELACION");
+                    productosClient.reponerStock(d.getSku(), d.getCantidad(), pedido.getNumeroPedido(), "CANCELACION",
+                            pedido.getRutCliente());
                 } catch (ResponseStatusException ignorada) {
                     // Si tampoco se puede reponer, queda registrado en el log de ms-productos
                 }
@@ -240,7 +238,7 @@ public class PedidoService {
         return aDTO(pedido, usuariosClient.buscarUsuario(pedido.getRutCliente()));
     }
 
-    /** HU-37: cancela un pedido no entregado. Si estaba pagado, el stock vuelve al inventario. */
+    /** HU-37: cancela un pedido no entregado. Si estaba pagado, se repone el stock de sus productos. */
     @Transactional
     public PedidoDTO cancelar(Long numeroPedido, String motivo, String rutAdmin) {
         usuariosClient.exigirPermiso(rutAdmin, Permisos.GESTIONAR_PEDIDOS);
@@ -253,8 +251,8 @@ public class PedidoService {
                     "No se puede cancelar un pedido " + pedido.getEstado());
         }
         if (pedido.tienePagoAprobado()) {
-            for (DetallePedido d : pedido.getDetalles()) {
-                productosClient.reponerStock(d.getSku(), d.getCantidad(), numeroPedido, "CANCELACION");
+            for (ItemPedido d : pedido.getItems()) {
+                productosClient.reponerStock(d.getSku(), d.getCantidad(), numeroPedido, "CANCELACION", rutAdmin.trim());
             }
         }
         EstadoPedido anterior = pedido.getEstado();
@@ -292,25 +290,26 @@ public class PedidoService {
 
     /** ms-productos: no se puede eliminar un producto que aparece en pedidos (HU-04). */
     public boolean productoTienePedidos(String sku) {
-        return pedidoRepository.existsByDetallesSku(sku);
+        return pedidoRepository.existsByItemsSku(sku);
     }
 
     /** ms-productos: solo puede reseñar quien recibió el producto (HU-81). */
     public boolean clienteRecibioProducto(String rut, String sku) {
-        return pedidoRepository.existsByRutClienteAndEstadoAndDetallesSku(rut, EstadoPedido.ENTREGADO, sku);
+        return pedidoRepository.existsByRutClienteAndEstadoAndItemsSku(rut, EstadoPedido.ENTREGADO, sku);
     }
 
     /**
-     * ms-informes: pedidos creados entre las fechas indicadas (ambas opcionales), con la región
-     * de envío ya resuelta. Si ms-usuarios no responde, la región de los pedidos sin dirección
-     * alternativa queda vacía.
+     * ms-informes: pedidos creados entre las fechas indicadas (ambas opcionales), más los pedidos
+     * anteriores que tuvieron un reembolso en ese rango, para que el reporte lo descuente en el
+     * periodo del reembolso (HU-45 criterio 4). La región de envío va ya resuelta; si ms-usuarios
+     * no responde, la de los pedidos sin dirección alternativa queda vacía.
      */
     @Transactional(readOnly = true)
     public List<PedidoResumenDTO> resumen(LocalDate desde, LocalDate hasta) {
         Map<String, UsuarioDTO> cache = new HashMap<>();
         return pedidoRepository.findAllByOrderByFechaDesc().stream()
-                .filter(p -> desde == null || !p.getFecha().toLocalDate().isBefore(desde))
-                .filter(p -> hasta == null || !p.getFecha().toLocalDate().isAfter(hasta))
+                .filter(p -> enRango(p.getFecha(), desde, hasta)
+                        || ReembolsoDTO.delPedido(p).stream().anyMatch(r -> enRango(r.getFechaReembolso(), desde, hasta)))
                 .map(p -> {
                     String region = p.getRegionEnvio();
                     if (region == null) {
@@ -318,9 +317,14 @@ public class PedidoService {
                         region = cliente == null ? null : cliente.getRegion();
                     }
                     return new PedidoResumenDTO(p.getNumeroPedido(), p.getFecha(), p.getEstado(), p.getTotal(),
-                            region, p.tienePagoAprobado(), new ArrayList<>(p.getDetalles()));
+                            region, p.tienePagoAprobado(), new ArrayList<>(p.getItems()), ReembolsoDTO.delPedido(p));
                 })
                 .toList();
+    }
+
+    private boolean enRango(LocalDateTime fecha, LocalDate desde, LocalDate hasta) {
+        return (desde == null || !fecha.toLocalDate().isBefore(desde))
+                && (hasta == null || !fecha.toLocalDate().isAfter(hasta));
     }
 
     // ---------- Apoyo ----------
@@ -355,7 +359,7 @@ public class PedidoService {
 
     /** Precios con IVA incluido: el IVA se informa, no se suma. El total agrega el envío. */
     private void calcularMontos(Pedido pedido) {
-        int subtotal = pedido.getDetalles().stream().mapToInt(DetallePedido::subtotal).sum();
+        int subtotal = pedido.getItems().stream().mapToInt(ItemPedido::subtotal).sum();
         pedido.setSubtotal(subtotal);
         pedido.setIva((int) Math.round(subtotal * 19 / 119.0));
         pedido.setCostoEnvio(costoEnvio);
@@ -367,8 +371,29 @@ public class PedidoService {
         if (cantidad > stock) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, stock == 0
                     ? producto.getModelo() + " se agotó. Quítelo del carro para continuar"
-                    : "Solo quedan " + stock + " unidades de " + producto.getModelo() + ". Ajuste la cantidad en su carro");
+                    : "Solo quedan " + stock + " unidades de " + producto.getModelo() + ". Ajuste la cantidad");
         }
+    }
+
+    /**
+     * Valida la lista que envía el frontend y suma las cantidades si un mismo producto viene dos veces.
+     * Conserva el orden en que llegaron.
+     */
+    private Map<String, Integer> agruparItems(List<ItemDTO> items) {
+        if (items == null || items.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El pedido no tiene productos");
+        }
+        Map<String, Integer> cantidades = new LinkedHashMap<>();
+        for (ItemDTO item : items) {
+            if (item.getSku() == null || item.getSku().isBlank()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cada producto debe indicar su SKU");
+            }
+            if (item.getCantidad() == null || item.getCantidad() < 1) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La cantidad debe ser al menos 1");
+            }
+            cantidades.merge(item.getSku().trim().toUpperCase(), item.getCantidad(), Integer::sum);
+        }
+        return cantidades;
     }
 
     private void agregarHistorial(Pedido pedido, EstadoPedido anterior, EstadoPedido nuevo, String rutResponsable) {
@@ -406,7 +431,7 @@ public class PedidoService {
         return new PedidoDTO(p.getNumeroPedido(), p.getRutCliente(),
                 cliente == null ? null : cliente.nombreCompleto(), p.getFecha(), p.getEstado(),
                 p.getSubtotal(), p.getCostoEnvio(), p.getIva(), p.getTotal(), p.getMetodoPago(), direccion,
-                p.getMotivoCancelacion(), new ArrayList<>(p.getDetalles()), new ArrayList<>(p.getHistorial()),
+                p.getMotivoCancelacion(), new ArrayList<>(p.getItems()), new ArrayList<>(p.getHistorial()),
                 new ArrayList<>(p.getPagos()));
     }
 

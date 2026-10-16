@@ -16,5 +16,6 @@ public interface DevolucionRepository extends JpaRepository<SolicitudDevolucion,
 
     long countByEstado(EstadoDevolucion estado);
 
-    boolean existsByPedidoNumeroPedidoAndSkuAndEstadoNot(Long numeroPedido, String sku, EstadoDevolucion estado);
+    /** Solicitudes anteriores del mismo pedido que no fueron rechazadas (HU-39 criterio 3). */
+    List<SolicitudDevolucion> findByPedidoNumeroPedidoAndEstadoNot(Long numeroPedido, EstadoDevolucion estado);
 }

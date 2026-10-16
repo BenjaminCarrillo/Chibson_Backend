@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventarioDTO {
+public class StockDTO {
     private String sku;
     private Integer stockDisponible;
     private Integer stockMinimo;
-    private boolean bajoStock;
+    private Boolean bajoStock;
 }
