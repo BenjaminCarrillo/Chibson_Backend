@@ -16,10 +16,6 @@
     {
       "key": "rutCliente",
       "value": "9876543-3"
-    },
-    {
-      "key": "token",
-      "value": "pega-aqui-el-token"
     }
   ],
   "item": [
@@ -365,7 +361,7 @@
           }
         },
         {
-          "name": "Solicitar recuperación (HU-10)",
+          "name": "Recuperar contraseña con RUT y correo (HU-10)",
           "request": {
             "method": "POST",
             "header": [
@@ -375,7 +371,7 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/auth/recuperar?correo=juan@correo.cl",
+              "raw": "{{base}}/api/auth/recuperar",
               "host": [
                 "{{base}}"
               ],
@@ -383,19 +379,22 @@
                 "api",
                 "auth",
                 "recuperar"
-              ],
-              "query": [
-                {
-                  "key": "correo",
-                  "value": "juan@correo.cl"
-                }
               ]
             },
-            "description": "Busca en la consola del microservicio la línea [Correo simulado] y copia el token en la variable 'token' de la colección."
+            "description": "Espera 200. Sin token ni enlace: si el RUT y el correo son de la misma cuenta, Usuario.recuperarPassword() pone la contraseña nueva.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"rut\": \"{{rutCliente}}\",\n  \"correo\": \"juan@correo.cl\",\n  \"nuevaPassword\": \"Otra12345\",\n  \"confirmarPassword\": \"Otra12345\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
-          "name": "Restablecer contraseña (HU-10)",
+          "name": "Error: RUT y correo no coinciden (HU-10)",
           "request": {
             "method": "POST",
             "header": [
@@ -405,20 +404,20 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/auth/restablecer",
+              "raw": "{{base}}/api/auth/recuperar",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
                 "auth",
-                "restablecer"
+                "recuperar"
               ]
             },
-            "description": "200. Si la envías otra vez, responde 400: El enlace ya fue utilizado.",
+            "description": "Espera 400 con \"El RUT y el correo no corresponden a una misma cuenta\". La contraseña no cambia.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"token\": \"{{token}}\",\n  \"nuevaPassword\": \"Otra12345\",\n  \"confirmarPassword\": \"Otra12345\"\n}",
+              "raw": "{\n  \"rut\": \"{{rutCliente}}\",\n  \"correo\": \"otro@correo.cl\",\n  \"nuevaPassword\": \"Otra12345\",\n  \"confirmarPassword\": \"Otra12345\"\n}",
               "options": {
                 "raw": {
                   "language": "json"

@@ -66,4 +66,16 @@ public class Usuario {
     @ManyToOne
     @JoinColumn(name = "id_rol", nullable = false)
     private Rol rol;
+
+    /**
+     * Recuperación de contraseña (HU-10). Cambia la contraseña solo si el correo ingresado es el de
+     * esta cuenta. Devuelve false si no coincide, y en ese caso no cambia nada.
+     */
+    public boolean recuperarPassword(String correoIngresado, String nuevaPassword) {
+        if (correoIngresado == null || !correo.equalsIgnoreCase(correoIngresado.trim())) {
+            return false;
+        }
+        this.password = nuevaPassword;
+        return true;
+    }
 }

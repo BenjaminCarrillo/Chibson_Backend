@@ -4,7 +4,7 @@ import chibson.usuarios.dto.CambioPasswordDTO;
 import chibson.usuarios.dto.LoginDTO;
 import chibson.usuarios.dto.LoginRespuestaDTO;
 import chibson.usuarios.dto.RegistroUsuarioDTO;
-import chibson.usuarios.dto.RestablecerPasswordDTO;
+import chibson.usuarios.dto.RecuperarPasswordDTO;
 import chibson.usuarios.dto.UsuarioDTO;
 import chibson.usuarios.service.AuthService;
 import org.springframework.http.HttpStatus;
@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -41,17 +40,10 @@ public class AuthController {
         return authService.login(datos);
     }
 
-    /** HU-10: solicita el enlace. */
+    /** HU-10: recupera la contraseña con el RUT y el correo de la cuenta. */
     @PostMapping("/recuperar")
-    public Map<String, String> solicitarRecuperacion(@RequestParam String correo) {
-        authService.solicitarRecuperacion(correo);
-        return Map.of("mensaje", "Si el correo está registrado, se envió un enlace de recuperación");
-    }
-
-    /** HU-10: usa el enlace para poner una nueva contraseña. */
-    @PostMapping("/restablecer")
-    public Map<String, String> restablecerPassword(@RequestBody RestablecerPasswordDTO datos) {
-        authService.restablecerPassword(datos);
+    public Map<String, String> recuperarPassword(@RequestBody RecuperarPasswordDTO datos) {
+        authService.recuperarPassword(datos);
         return Map.of("mensaje", "La contraseña se actualizó correctamente");
     }
 

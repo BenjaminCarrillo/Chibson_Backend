@@ -9,7 +9,6 @@ import chibson.usuarios.model.Rol;
 import chibson.usuarios.model.TipoAccion;
 import chibson.usuarios.model.Usuario;
 import chibson.usuarios.repository.NotificacionRepository;
-import chibson.usuarios.repository.TokenRecuperacionRepository;
 import chibson.usuarios.repository.UsuarioRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -27,17 +26,15 @@ public class UsuarioService {
 
     private final UsuarioRepository usuarioRepository;
     private final NotificacionRepository notificacionRepository;
-    private final TokenRecuperacionRepository tokenRepository;
     private final RolService rolService;
     private final RegistroAccionService registroAccionService;
     private final VentasClient ventasClient;
 
     public UsuarioService(UsuarioRepository usuarioRepository, NotificacionRepository notificacionRepository,
-                          TokenRecuperacionRepository tokenRepository, RolService rolService,
+                          RolService rolService,
                           RegistroAccionService registroAccionService, VentasClient ventasClient) {
         this.usuarioRepository = usuarioRepository;
         this.notificacionRepository = notificacionRepository;
-        this.tokenRepository = tokenRepository;
         this.rolService = rolService;
         this.registroAccionService = registroAccionService;
         this.ventasClient = ventasClient;
@@ -174,7 +171,6 @@ public class UsuarioService {
                     "El usuario tiene pedidos asociados; desactívelo en lugar de eliminarlo");
         }
         notificacionRepository.deleteByUsuarioRut(usuario.getRut());
-        tokenRepository.deleteByUsuarioRut(usuario.getRut());
         usuarioRepository.delete(usuario);
         registroAccionService.registrar(rutAdministrador, TipoAccion.ELIMINAR, MODULO,
                 "Eliminó el usuario " + usuario.getUsername() + " (" + usuario.getRut() + ")",

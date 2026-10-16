@@ -4,41 +4,28 @@ import chibson.usuarios.dto.CambioPasswordDTO;
 import chibson.usuarios.dto.LoginDTO;
 import chibson.usuarios.dto.LoginRespuestaDTO;
 import chibson.usuarios.dto.RegistroUsuarioDTO;
-import chibson.usuarios.dto.RestablecerPasswordDTO;
+import chibson.usuarios.dto.RecuperarPasswordDTO;
 import chibson.usuarios.model.EstadoUsuario;
 import chibson.usuarios.model.Permiso;
 import chibson.usuarios.model.Rol;
-import chibson.usuarios.model.TokenRecuperacion;
 import chibson.usuarios.model.Usuario;
-import chibson.usuarios.repository.TokenRecuperacionRepository;
 import chibson.usuarios.repository.UsuarioRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
 
 /** Registro, inicio de sesión y contraseñas (HU-08 a HU-10, HU-16). */
 @Service
 public class AuthService {
 
-    private static final Logger log = LoggerFactory.getLogger(AuthService.class);
-    private static final int MINUTOS_VIGENCIA_TOKEN = 30;
-
     private final UsuarioRepository usuarioRepository;
-    private final TokenRecuperacionRepository tokenRepository;
     private final RolService rolService;
 
-    public AuthService(UsuarioRepository usuarioRepository, TokenRecuperacionRepository tokenRepository,
-                       RolService rolService) {
+    public AuthService(UsuarioRepository usuarioRepository, RolService rolService) {
         this.usuarioRepository = usuarioRepository;
-        this.tokenRepository = tokenRepository;
         this.rolService = rolService;
     }
 
@@ -95,43 +82,26 @@ public class AuthService {
     }
 
     /**
-     * Genera un enlace de recuperación válido por 30 minutos (HU-10).
-     * El envío por correo está simulado: el enlace se muestra en la consola del microservicio.
-     * La respuesta es la misma exista o no el correo, para no revelar qué correos están registrados.
+     * Recuperación de contraseña sin enlace ni token (HU-10): si el RUT y el correo son de la misma
+     * cuenta, Usuario.recuperarPassword() pone la contraseña nueva. Si no coinciden, el mensaje no
+     * dice cuál de los dos está mal, para no revelar qué cuentas existen.
      */
-    public void solicitarRecuperacion(String correo) {
-        if (correo == null || correo.isBlank()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El correo es obligatorio");
-        }
-        Optional<Usuario> usuario = usuarioRepository.findByCorreoIgnoreCase(correo.trim());
-        if (usuario.isEmpty()) {
-            return;
-        }
-        TokenRecuperacion token = new TokenRecuperacion();
-        token.setToken(UUID.randomUUID().toString());
-        token.setExpiraEn(LocalDateTime.now().plusMinutes(MINUTOS_VIGENCIA_TOKEN));
-        token.setUsado(false);
-        token.setUsuario(usuario.get());
-        tokenRepository.save(token);
-        log.info("[Correo simulado] Enlace de recuperación para {}: token={}", usuario.get().getCorreo(), token.getToken());
-    }
-
-    /** Establece la nueva contraseña con un enlace vigente y sin usar (HU-10). */
-    public void restablecerPassword(RestablecerPasswordDTO datos) {
-        TokenRecuperacion token = tokenRepository.findByToken(Validaciones.obligatorio(datos.getToken(), "token"))
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "El enlace no es válido"));
-        if (token.isUsado()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El enlace ya fue utilizado");
-        }
-        if (token.getExpiraEn().isBefore(LocalDateTime.now())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El enlace venció; solicite uno nuevo");
+    public void recuperarPassword(RecuperarPasswordDTO datos) {
+        Validaciones.obligatorio(datos.getCorreo(), "correo");
+        if (datos.getConfirmarPassword() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Debe confirmar la contraseña");
         }
         Validaciones.validarPassword(datos.getNuevaPassword(), datos.getConfirmarPassword());
-        Usuario usuario = token.getUsuario();
-        usuario.setPassword(datos.getNuevaPassword());
+        String rut = Validaciones.normalizarRut(datos.getRut());
+        Usuario usuario = usuarioRepository.findById(rut).orElse(null);
+        if (usuario == null || !usuario.recuperarPassword(datos.getCorreo(), datos.getNuevaPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "El RUT y el correo no corresponden a una misma cuenta");
+        }
+        if (usuario.getEstado() == EstadoUsuario.DESACTIVADO) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "La cuenta está desactivada");
+        }
         usuarioRepository.save(usuario);
-        token.setUsado(true);
-        tokenRepository.save(token);
     }
 
     /** Cambio de contraseña con la sesión iniciada (HU-16). */

@@ -32,8 +32,7 @@ que ese usuario exista, esté activo y tenga el permiso necesario (HU-72):
 |---|---|---|---|
 | POST | `/api/auth/registro` | Visitante | HU-08 |
 | POST | `/api/auth/login` | Visitante | HU-09 |
-| POST | `/api/auth/recuperar?correo=` | Visitante | HU-10 |
-| POST | `/api/auth/restablecer` | Visitante con enlace | HU-10 |
+| POST | `/api/auth/recuperar` `{rut, correo, nuevaPassword, confirmarPassword}` | Visitante | HU-10 |
 | PUT | `/api/auth/password` | Usuario con sesión | HU-16 |
 | GET / PUT | `/api/usuarios/perfil` | Usuario con sesión | HU-12 |
 | GET | `/api/usuarios?rol=&estado=&texto=` | GESTIONAR_USUARIOS | HU-70 |
@@ -64,7 +63,7 @@ que ese usuario exista, esté activo y tenga el permiso necesario (HU-72):
 ## Decisiones dentro del alcance
 
 - **Contraseñas sin hash:** BCrypt queda fuera porque no se ha visto en clases. Igual nunca se devuelven: las respuestas usan `UsuarioDTO`.
-- **Correo simulado (HU-10):** el enlace de recuperación se muestra en la consola como `[Correo simulado] ... token=...`.
+- **Recuperación de contraseña (HU-10):** sin enlace ni token. El usuario envía su RUT, su correo y la contraseña nueva; `Usuario.recuperarPassword()` la cambia solo si el correo es el de esa cuenta. Las contraseñas se guardan sin encriptar.
 - **Cambio de correo:** el perfil no permite cambiar el correo, porque HU-12 exige verificarlo y eso necesita envío de correos. El administrador sí puede cambiarlo (HU-14).
 - **Eliminar usuario (HU-17):** se consulta a ms-ventas si el cliente tiene pedidos. Si ms-ventas no responde, se rechaza con 503 para no borrar a alguien con pedidos.
 - **Cerrar sesión (HU-18):** es solo del frontend: borra los datos guardados de la sesión.
