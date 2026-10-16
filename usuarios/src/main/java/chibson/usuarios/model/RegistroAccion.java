@@ -14,7 +14,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -27,7 +26,6 @@ import java.util.List;
 @Entity
 @Table(name = "registro_accion")
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class RegistroAccion {
 
@@ -53,5 +51,14 @@ public class RegistroAccion {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinColumn(name = "id_registro")
-    private List<DetalleCambio> cambios = new ArrayList<>();
+    private List<DetalleCambio> cambios;
+
+    /**
+     * Constructor vacío (lo usan JPA y Jackson). La lista se inicializa aquí y no en la declaración
+     * del campo: con Java 25, el compilador de VS Code marca error si un campo tiene inicializador y
+     * además lo asigna el constructor con todos los argumentos que genera @AllArgsConstructor.
+     */
+    public RegistroAccion() {
+        this.cambios = new ArrayList<>();
+    }
 }

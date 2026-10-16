@@ -12,7 +12,6 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -21,7 +20,6 @@ import java.util.Set;
 @Entity
 @Table(name = "rol")
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class Rol {
 
@@ -39,5 +37,14 @@ public class Rol {
     @JoinTable(name = "rol_permiso",
             joinColumns = @JoinColumn(name = "id_rol"),
             inverseJoinColumns = @JoinColumn(name = "id_permiso"))
-    private Set<Permiso> permisos = new HashSet<>();
+    private Set<Permiso> permisos;
+
+    /**
+     * Constructor vacío (lo usan JPA y Jackson). La lista se inicializa aquí y no en la declaración
+     * del campo: con Java 25, el compilador de VS Code marca error si un campo tiene inicializador y
+     * además lo asigna el constructor con todos los argumentos que genera @AllArgsConstructor.
+     */
+    public Rol() {
+        this.permisos = new HashSet<>();
+    }
 }

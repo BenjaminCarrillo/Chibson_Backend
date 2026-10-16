@@ -1,5 +1,6 @@
 package chibson.contenido.controller;
 
+import chibson.contenido.client.UsuariosClient;
 import chibson.contenido.dto.NoticiaDTO;
 import chibson.contenido.model.CategoriaNoticia;
 import chibson.contenido.model.EstadoNoticia;
@@ -27,14 +28,18 @@ public class NoticiaController {
 
     /** Encabezado con el RUT del usuario que hace la petición. */
     private static final String RUT = "X-Rut-Usuario";
+    /** Permiso que exige ms-usuarios para administrar noticias (HU-72). */
+    private static final String PERMISO = "GESTIONAR_NOTICIAS";
 
     private final NoticiaService noticiaService;
+    private final UsuariosClient usuariosClient;
 
-    public NoticiaController(NoticiaService noticiaService) {
+    public NoticiaController(NoticiaService noticiaService, UsuariosClient usuariosClient) {
         this.noticiaService = noticiaService;
+        this.usuariosClient = usuariosClient;
     }
 
-    // ---------- Vista pública ----------
+    // ---------- Vista pública: no requiere sesión ----------
 
     @GetMapping("/publicadas")
     public List<Noticia> listarPublicadas() {
@@ -46,44 +51,53 @@ public class NoticiaController {
         return noticiaService.obtenerPublicada(id);
     }
 
-    // ---------- Panel de administración ----------
+    // ---------- Panel de administración: permiso GESTIONAR_NOTICIAS ----------
 
     @GetMapping
-    public List<Noticia> listarNoticias(@RequestParam(required = false) CategoriaNoticia categoria,
+    public List<Noticia> listarNoticias(@RequestHeader(value = RUT, required = false) String rut,
+                                        @RequestParam(required = false) CategoriaNoticia categoria,
                                         @RequestParam(required = false) EstadoNoticia estado,
                                         @RequestParam(required = false) String titulo) {
+        usuariosClient.exigirPermiso(rut, PERMISO);
         return noticiaService.listarNoticias(categoria, estado, titulo);
     }
 
     @GetMapping("/{id}")
-    public Noticia findById(@PathVariable Long id) {
+    public Noticia findById(@RequestHeader(value = RUT, required = false) String rut, @PathVariable Long id) {
+        usuariosClient.exigirPermiso(rut, PERMISO);
         return noticiaService.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity<Noticia> crearNoticia(@RequestBody NoticiaDTO datos,
-                                                @RequestHeader(RUT) String rut) {
+    public ResponseEntity<Noticia> crearNoticia(@RequestHeader(value = RUT, required = false) String rut,
+                                                @RequestBody NoticiaDTO datos) {
+        usuariosClient.exigirPermiso(rut, PERMISO);
         return ResponseEntity.status(HttpStatus.CREATED).body(noticiaService.crearNoticia(datos, rut));
     }
 
     @PutMapping("/{id}")
-    public Noticia editarNoticia(@PathVariable Long id, @RequestBody NoticiaDTO datos,
-                                 @RequestHeader(RUT) String rut) {
+    public Noticia editarNoticia(@RequestHeader(value = RUT, required = false) String rut,
+                                 @PathVariable Long id, @RequestBody NoticiaDTO datos) {
+        usuariosClient.exigirPermiso(rut, PERMISO);
         return noticiaService.editarNoticia(id, datos, rut);
     }
 
     @PatchMapping("/{id}/activar")
-    public Noticia activarNoticia(@PathVariable Long id, @RequestHeader(RUT) String rut) {
+    public Noticia activarNoticia(@RequestHeader(value = RUT, required = false) String rut, @PathVariable Long id) {
+        usuariosClient.exigirPermiso(rut, PERMISO);
         return noticiaService.activarNoticia(id, rut);
     }
 
     @PatchMapping("/{id}/desactivar")
-    public Noticia desactivarNoticia(@PathVariable Long id, @RequestHeader(RUT) String rut) {
+    public Noticia desactivarNoticia(@RequestHeader(value = RUT, required = false) String rut, @PathVariable Long id) {
+        usuariosClient.exigirPermiso(rut, PERMISO);
         return noticiaService.desactivarNoticia(id, rut);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarNoticia(@PathVariable Long id, @RequestHeader(RUT) String rut) {
+    public ResponseEntity<Void> eliminarNoticia(@RequestHeader(value = RUT, required = false) String rut,
+                                                @PathVariable Long id) {
+        usuariosClient.exigirPermiso(rut, PERMISO);
         noticiaService.eliminarNoticia(id, rut);
         return ResponseEntity.noContent().build();
     }

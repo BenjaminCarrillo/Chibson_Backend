@@ -7,8 +7,9 @@ Puerto **8085**, base de datos MySQL **chibson_contenido**.
 
 1. Tener MySQL encendido. La base `chibson_contenido` se crea sola.
 2. Revisar usuario y contraseña de MySQL en `src/main/resources/application.properties`.
-3. Ejecutar `ContenidoApplication` desde el IDE, o `./mvnw spring-boot:run`.
-4. Importar `chibson-contenido.postman_collection.json` en Postman y probar en orden.
+3. **Levantar primero ms-usuarios** (puerto 8081): las acciones de administración le preguntan si el usuario tiene permiso.
+4. Ejecutar `ContenidoApplication` desde el IDE, o `./mvnw spring-boot:run`.
+5. Importar `chibson-contenido.postman_collection.json` en Postman y probar en orden.
 
 Los tests (`ContenidoApplicationTests`) usan H2 en memoria, así que no necesitan MySQL.
 
@@ -27,7 +28,14 @@ chibson.contenido
 
 ## Endpoints
 
-Las acciones de administración exigen el encabezado `X-Rut-Usuario` con el RUT del administrador.
+Las rutas de administración exigen el encabezado `X-Rut-Usuario` y consultan a ms-usuarios
+(`GET /api/roles/verificar`) si ese usuario tiene el permiso **GESTIONAR_NOTICIAS** (HU-72):
+
+- Sin encabezado: **401** "Debe iniciar sesión".
+- Usuario sin el permiso, desactivado o inexistente: **403** "No tiene permiso para realizar esta acción".
+- ms-usuarios apagado: **503** "No se pudo verificar el permiso".
+
+Las rutas públicas (`/publicadas` y `GET /api/institucional`) no requieren sesión.
 
 | Método | Ruta | Uso | HU |
 |---|---|---|---|
@@ -55,6 +63,4 @@ acción se guarda igual y en la consola aparece la advertencia
 
 ## Pendiente para más adelante
 
-- El permiso de administrador todavía no se valida: solo se exige el RUT. Se completará cuando
-  exista ms-usuarios (HU-72).
 - CORS: cuando el frontend llame a través del API Gateway, se configura en el gateway.

@@ -2,7 +2,7 @@
   "info": {
     "name": "Chibson · ms-contenido",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Pruebas de las HU-74 a HU-80. Ejecutar en orden con la base vacía."
+    "description": "Pruebas de las HU-74 a HU-80. Ejecutar en orden con la base vacía y con ms-usuarios corriendo (el administrador 12345678-5 se crea solo al levantarlo)."
   },
   "variable": [
     {
@@ -421,6 +421,56 @@
             }
           }
         }
+      }
+    },
+    {
+      "name": "15. Error: sin sesión (HU-72)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias"
+          ]
+        },
+        "description": "401: Debe iniciar sesión."
+      }
+    },
+    {
+      "name": "16. Error: cliente sin permiso (HU-72)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "X-Rut-Usuario",
+            "value": "9876543-3"
+          }
+        ],
+        "url": {
+          "raw": "{{base}}/api/noticias",
+          "host": [
+            "{{base}}"
+          ],
+          "path": [
+            "api",
+            "noticias"
+          ]
+        },
+        "description": "403: No tiene permiso. Usa el cliente registrado en la colección de ms-usuarios."
       }
     }
   ]

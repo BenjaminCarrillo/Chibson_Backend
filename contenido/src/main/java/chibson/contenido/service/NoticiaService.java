@@ -69,8 +69,8 @@ public class NoticiaService {
         noticia.setContenido(datos.getContenido().trim());
         noticia.setImagenUrl(vacioANull(datos.getImagenUrl()));
         noticia.setCategoria(datos.getCategoria());
-boolean publicar = Boolean.TRUE.equals(datos.getPublicar());
-if (publicar) {
+        boolean publicar = Boolean.TRUE.equals(datos.getPublicar());
+        if (publicar) {
             noticia.setEstado(EstadoNoticia.ACTIVADA);
             noticia.setFechaPublicacion(datos.getFechaPublicacion() != null ? datos.getFechaPublicacion() : LocalDate.now());
         } else {
