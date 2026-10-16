@@ -8,7 +8,6 @@ import chibson.productos.dto.ProductoRespuestaDTO;
 import chibson.productos.dto.RegistroAccionDTO;
 import chibson.productos.model.Categoria;
 import chibson.productos.model.EstadoProducto;
-import chibson.productos.model.Inventario;
 import chibson.productos.model.Producto;
 import chibson.productos.repository.ProductoRepository;
 import org.springframework.http.HttpStatus;
@@ -28,14 +27,12 @@ public class ProductoService {
     private static final String MODULO = "Productos";
 
     private final ProductoRepository productoRepository;
-    private final InventarioService inventarioService;
     private final UsuariosClient usuariosClient;
     private final VentasClient ventasClient;
 
-    public ProductoService(ProductoRepository productoRepository, InventarioService inventarioService,
-                           UsuariosClient usuariosClient, VentasClient ventasClient) {
+    public ProductoService(ProductoRepository productoRepository, UsuariosClient usuariosClient,
+                           VentasClient ventasClient) {
         this.productoRepository = productoRepository;
-        this.inventarioService = inventarioService;
         this.usuariosClient = usuariosClient;
         this.ventasClient = ventasClient;
     }
@@ -74,41 +71,44 @@ public class ProductoService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No existe el producto " + sku));
     }
 
-    /** Crea el producto con SKU automático y su inventario, en una sola transacción (HU-01, HU-07). */
+    /** Crea el producto con SKU automático y su stock inicial (HU-01, HU-07). */
     @Transactional
     public ProductoRespuestaDTO crearProducto(ProductoDTO datos, String rutAdministrador) {
         validar(datos);
-        if (datos.getStockDisponible() == null) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El stock inicial es obligatorio");
-        }
+        validarNoNegativo(datos.getStockDisponible(), "stock inicial");
+        int minimo = datos.getStockMinimo() == null ? StockService.STOCK_MINIMO_POR_DEFECTO : datos.getStockMinimo();
+        validarNoNegativo(minimo, "stock mínimo");
         Producto producto = new Producto();
         producto.setSku(generarSku(datos.getCategoria()));
         copiarDatos(datos, producto);
+        producto.setStockDisponible(datos.getStockDisponible());
+        producto.setStockMinimo(minimo);
         producto.setEstado(Boolean.FALSE.equals(datos.getActivo()) ? EstadoProducto.INACTIVO : EstadoProducto.ACTIVO);
         producto.setFechaModificacion(LocalDateTime.now());
         Producto guardado = productoRepository.save(producto);
-        inventarioService.crearInventario(guardado, datos.getStockDisponible(), datos.getStockMinimo());
 
-        registrar(rutAdministrador, "CREAR", "Creó el producto " + guardado.getModelo() + " (" + guardado.getSku() + ")",
-                new ArrayList<>());
+        registrar(rutAdministrador, "CREAR", "Creó el producto " + guardado.getModelo() + " (" + guardado.getSku()
+                + ") con stock " + guardado.getStockDisponible(), new ArrayList<>());
         return aRespuesta(guardado);
     }
 
     /**
-     * Edita los datos del producto y su stock (HU-02).
-     * Primero se ajusta el stock: si es inválido, no se guarda nada.
+     * Edita los datos del producto y su stock (HU-02). Si el stock o el mínimo no vienen, se mantienen.
+     * Los cambios de stock quedan en el historial junto con los demás campos (HU-73).
      */
     @Transactional
     public ProductoRespuestaDTO editarProducto(String sku, ProductoDTO datos, String rutAdministrador) {
         validar(datos);
         Producto producto = findBySku(sku);
-        Inventario inventario = inventarioService.obtenerPorSku(sku);
+        int stock = datos.getStockDisponible() == null ? producto.getStockDisponible() : datos.getStockDisponible();
+        int minimo = datos.getStockMinimo() == null ? producto.getStockMinimo() : datos.getStockMinimo();
+        validarNoNegativo(stock, "stock disponible");
+        validarNoNegativo(minimo, "stock mínimo");
         List<DetalleCambioDTO> cambios = new ArrayList<>();
-        anotar(cambios, "stockDisponible", inventario.getStockDisponible(), datos.getStockDisponible() == null
-                ? inventario.getStockDisponible() : datos.getStockDisponible());
-        anotar(cambios, "stockMinimo", inventario.getStockMinimo(), datos.getStockMinimo() == null
-                ? inventario.getStockMinimo() : datos.getStockMinimo());
-        inventarioService.ajustarStock(sku, datos.getStockDisponible(), datos.getStockMinimo());
+        anotar(cambios, "stockDisponible", producto.getStockDisponible(), stock);
+        anotar(cambios, "stockMinimo", producto.getStockMinimo(), minimo);
+        producto.setStockDisponible(stock);
+        producto.setStockMinimo(minimo);
 
         anotar(cambios, "modelo", producto.getModelo(), datos.getModelo().trim());
         anotar(cambios, "marca", producto.getMarca(), datos.getMarca().trim());
@@ -164,20 +164,22 @@ public class ProductoService {
         return guardarFicha(producto, texto, rutAdministrador, "Editó");
     }
 
-    /** Productos con stock bajo, con sus datos para la tabla del dashboard (HU-56). */
+    /** Productos activos con stock igual o menor a su mínimo, del más urgente al menos urgente (HU-02, HU-50). */
     public List<ProductoRespuestaDTO> listarBajoStock() {
-        return inventarioService.listarBajoStock().stream().map(i -> aRespuesta(i.getProducto())).toList();
+        return productoRepository.findAll().stream()
+                .filter(p -> p.getEstado() == EstadoProducto.ACTIVO)
+                .filter(Producto::esBajoStock)
+                .sorted((a, b) -> Integer.compare(a.getStockDisponible(), b.getStockDisponible()))
+                .map(this::aRespuesta)
+                .toList();
     }
 
     /** Arma la respuesta con stock y ficha técnica interpretada. */
     public ProductoRespuestaDTO aRespuesta(Producto p) {
-        Inventario inv = p.getInventario();
-        int stock = inv == null ? 0 : inv.getStockDisponible();
-        int minimo = inv == null ? 0 : inv.getStockMinimo();
         return new ProductoRespuestaDTO(p.getSku(), p.getModelo(), p.getMarca(), p.getDescripcion(), p.getPrecio(),
                 p.getCategoria(), p.getEstado(), p.getImagenUrl(), p.getFichaTecnica(),
-                FichaTecnica.interpretar(p.getFichaTecnica()), stock, minimo, inv != null && inv.esBajoStock(),
-                stock == 0, p.getFechaModificacion(), p.getFechaModificacionFicha());
+                FichaTecnica.interpretar(p.getFichaTecnica()), p.getStockDisponible(), p.getStockMinimo(),
+                p.esBajoStock(), p.estaAgotado(), p.getFechaModificacion(), p.getFechaModificacionFicha());
     }
 
     // ---------- Apoyo ----------
@@ -238,6 +240,15 @@ public class ProductoService {
         producto.setPrecio(datos.getPrecio());
         producto.setCategoria(datos.getCategoria());
         producto.setImagenUrl(datos.getImagenUrl().trim());
+    }
+
+    private void validarNoNegativo(Integer valor, String campo) {
+        if (valor == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El " + campo + " es obligatorio");
+        }
+        if (valor < 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El " + campo + " no puede ser negativo");
+        }
     }
 
     private void obligatorio(String valor, String mensaje) {

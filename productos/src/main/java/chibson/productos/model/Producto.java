@@ -8,7 +8,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -19,8 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Producto del catálogo. El stock no vive aquí sino en Inventario (módulo inventario).
- * Se usa @Getter/@Setter en vez de @Data porque las relaciones van en ambos sentidos
+ * Producto del catálogo con su stock. Como la tienda tiene una sola sucursal, el stock es un
+ * campo del producto; cada cambio queda en el historial de acciones de ms-usuarios (HU-63).
+ * Se usa @Getter/@Setter en vez de @Data porque la relación con Resena va en ambos sentidos
  * y @Data generaría un toString/hashCode infinito.
  */
 @Entity
@@ -66,11 +66,22 @@ public class Producto {
 
     private LocalDateTime fechaModificacionFicha;
 
-    @JsonIgnore
-    @OneToOne(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Inventario inventario;
+    @Column(nullable = false)
+    private Integer stockDisponible;
+
+    /** Bajo este número el producto aparece con "Bajo stock" (HU-02). 5 si no se indica. */
+    @Column(nullable = false)
+    private Integer stockMinimo;
 
     @JsonIgnore
     @OneToMany(mappedBy = "producto", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Resena> resenas = new ArrayList<>();
+
+    public boolean esBajoStock() {
+        return stockDisponible <= stockMinimo;
+    }
+
+    public boolean estaAgotado() {
+        return stockDisponible == 0;
+    }
 }

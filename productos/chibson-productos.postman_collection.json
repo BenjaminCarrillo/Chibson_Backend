@@ -2,12 +2,12 @@
   "info": {
     "name": "Chibson · ms-productos",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Pruebas de HU-01 a HU-07, HU-19, HU-63, HU-64 y HU-81 a HU-88. Ejecutar en orden con la base vacía y ms-usuarios corriendo."
+    "description": "Pruebas de HU-01 a HU-07, HU-19, HU-37, HU-41, HU-50, HU-63 y HU-81 a HU-88. Ejecutar en orden con la base vacía y ms-usuarios corriendo."
   },
   "variable": [
     {
       "key": "base",
-      "value": "http://localhost:8082"
+      "value": "http://localhost:8087"
     },
     {
       "key": "rutAdmin",
@@ -238,7 +238,7 @@
                 "GTR-0001"
               ]
             },
-            "description": "Baja el precio y deja el stock en 2: queda en bajo stock y se registra un ajuste manual de -8.",
+            "description": "Baja el precio y deja el stock en 2: queda como \"Bajo stock\" (2 ≤ mínimo 3). El cambio queda en el historial de acciones de ms-usuarios.",
             "body": {
               "mode": "raw",
               "raw": "{\n  \"modelo\": \"Stratocaster Player\",\n  \"marca\": \"Fender\",\n  \"descripcion\": \"Guitarra eléctrica de cuerpo sólido.\",\n  \"precio\": 1450000,\n  \"categoria\": \"GUITARRA\",\n  \"imagenUrl\": \"img/guitarra.png\",\n  \"stockDisponible\": 2,\n  \"stockMinimo\": 3\n}",
@@ -617,39 +617,10 @@
       ]
     },
     {
-      "name": "3. Inventario",
+      "name": "3. Stock",
       "item": [
         {
-          "name": "Historial de movimientos (HU-64)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/inventario/GTR-0001/movimientos",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "inventario",
-                "GTR-0001",
-                "movimientos"
-              ]
-            },
-            "description": "Stock inicial +10 y ajuste manual -8."
-          }
-        },
-        {
-          "name": "Verificar disponibilidad (carrito)",
+          "name": "Consultar stock (EP7)",
           "request": {
             "method": "GET",
             "header": [
@@ -659,24 +630,18 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/inventario/GTR-0001/disponible?cantidad=2",
+              "raw": "{{base}}/api/productos/GTR-0001/stock",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "inventario",
+                "productos",
                 "GTR-0001",
-                "disponible"
-              ],
-              "query": [
-                {
-                  "key": "cantidad",
-                  "value": "2"
-                }
+                "stock"
               ]
             },
-            "description": "true; con cantidad=3 responde false."
+            "description": "200: stockDisponible 2, stockMinimo 3, bajoStock true."
           }
         },
         {
@@ -690,21 +655,21 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/inventario/GTR-0001/descontar",
+              "raw": "{{base}}/api/productos/GTR-0001/descontar",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "inventario",
+                "productos",
                 "GTR-0001",
                 "descontar"
               ]
             },
-            "description": "Lo hará ms-ventas al confirmarse un pago. Queda 1 unidad.",
+            "description": "Lo hace ms-ventas al confirmarse un pago. Queda 1 unidad.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cantidad\": 1,\n  \"numeroPedido\": 1\n}",
+              "raw": "{\n  \"cantidad\": 1,\n  \"numeroPedido\": 1,\n  \"rutResponsable\": \"{{rutCliente}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -724,13 +689,13 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/inventario/GTR-0001/descontar",
+              "raw": "{{base}}/api/productos/GTR-0001/descontar",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "inventario",
+                "productos",
                 "GTR-0001",
                 "descontar"
               ]
@@ -748,7 +713,7 @@
           }
         },
         {
-          "name": "Reponer por cancelación",
+          "name": "Reponer por cancelación (HU-37)",
           "request": {
             "method": "POST",
             "header": [
@@ -758,21 +723,21 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/inventario/GTR-0001/reponer",
+              "raw": "{{base}}/api/productos/GTR-0001/reponer",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "inventario",
+                "productos",
                 "GTR-0001",
                 "reponer"
               ]
             },
-            "description": "Vuelve a 2 unidades y queda un movimiento CANCELACION ligado al pedido 1.",
+            "description": "Lo hace ms-ventas al cancelar un pedido. Vuelve a 2 unidades.",
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"cantidad\": 1,\n  \"numeroPedido\": 1,\n  \"tipo\": \"CANCELACION\"\n}",
+              "raw": "{\n  \"cantidad\": 1,\n  \"numeroPedido\": 1,\n  \"tipo\": \"CANCELACION\",\n  \"rutResponsable\": \"{{rutAdmin}}\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -782,9 +747,9 @@
           }
         },
         {
-          "name": "Stock de varios productos",
+          "name": "Reponer por devolución aprobada (HU-41)",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
@@ -792,27 +757,65 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/inventario/stock?skus=GTR-0001,TEC-0001",
+              "raw": "{{base}}/api/productos/GTR-0001/reponer",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "inventario",
-                "stock"
-              ],
-              "query": [
-                {
-                  "key": "skus",
-                  "value": "GTR-0001,TEC-0001"
-                }
+                "productos",
+                "GTR-0001",
+                "reponer"
               ]
             },
-            "description": ""
+            "description": "Lo hace ms-ventas al aprobar una devolución, solo con los productos y cantidades de la solicitud. Queda en 3.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 1,\n  \"numeroPedido\": 1,\n  \"tipo\": \"DEVOLUCION\",\n  \"rutResponsable\": \"{{rutAdmin}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
-          "name": "Productos con stock bajo (HU-56)",
+          "name": "Error: tipo de reposición inválido",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/GTR-0001/reponer",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "GTR-0001",
+                "reponer"
+              ]
+            },
+            "description": "400: El tipo debe ser DEVOLUCION o CANCELACION.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cantidad\": 1,\n  \"numeroPedido\": 1,\n  \"tipo\": \"OTRO\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Productos con stock bajo (HU-02, HU-50)",
           "request": {
             "method": "GET",
             "header": [
@@ -822,17 +825,17 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/inventario/bajo-stock",
+              "raw": "{{base}}/api/productos/bajo-stock",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "inventario",
+                "productos",
                 "bajo-stock"
               ]
             },
-            "description": "GTR-0001 y TEC-0001, del menor stock al mayor."
+            "description": "GTR-0001 (3 de mínimo 3). TEC-0001 ya no aparece porque se eliminó en el paso HU-04. Lo usa ms-informes para el resumen general."
           }
         }
       ]

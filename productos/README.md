@@ -3,10 +3,10 @@
 Microservicio del dominio **Productos** de Chibson Instruments, con tres módulos:
 
 - **Catálogo** (EP1): productos, categoría, SKU y ficha técnica. HU-01 a HU-07 y HU-19.
-- **Inventario** (EP7): stock, stock mínimo y movimientos. HU-63 y HU-64.
+- **Stock** (EP7): stock y stock mínimo como campos de `Producto`; cada cambio queda en el historial de acciones. HU-63.
 - **Reseñas** (EP11): calificaciones, moderación y respuestas. HU-81 a HU-88.
 
-Puerto **8082**, base de datos MySQL **chibson_productos**.
+Puerto **8087**, base de datos MySQL **chibson_productos**.
 
 ## Cómo ejecutarlo
 
@@ -21,24 +21,22 @@ Puerto **8082**, base de datos MySQL **chibson_productos**.
 ```
 chibson.productos
 ├── model        Producto, Categoria, EstadoProducto        (catálogo)
-│                Inventario, MovimientoStock, TipoMovimiento (inventario)
 │                Resena, EstadoResena                        (reseñas)
 ├── repository   uno por entidad
-├── service      ProductoService, InventarioService, ResenaService, FichaTecnica
-├── controller   ProductoController, InventarioController, ResenaController
-├── dto          ProductoDTO, ProductoRespuestaDTO, InventarioDTO, MovimientoDTO, ResenaDTO, ...
+├── service      ProductoService, StockService, ResenaService, FichaTecnica
+├── controller   ProductoController, StockController, ResenaController
+├── dto          ProductoDTO, ProductoRespuestaDTO, StockDTO, MovimientoDTO, ResenaDTO, ...
 ├── client       UsuariosClient (permisos, nombre del cliente, historial), VentasClient (pedidos)
 └── config       RestTemplateConfig
 ```
 
-`ProductoService` llama a `InventarioService` directamente en Java: crear o editar un producto
-y su stock ocurre en una sola transacción.
+Como la tienda tiene una sola sucursal, no hay entidad de inventario: el stock es parte del producto.
 
 ## Reglas principales
 
 - **SKU automático:** prefijo de la categoría y correlativo, por ejemplo `GTR-0001`, `TEC-0001`.
-- **Stock:** vive en `Inventario`, no en `Producto`. "Agotado" es stock 0; "bajo stock" es stock igual o menor al mínimo (5 si no se indica).
-- **Movimientos:** cada cambio de stock queda registrado con tipo (`VENTA`, `DEVOLUCION`, `CANCELACION`, `AJUSTE_MANUAL`), cantidad (negativa en salidas), saldo y número de pedido.
+- **Stock:** campos `stockDisponible` y `stockMinimo` de `Producto`. "Agotado" es stock 0; "bajo stock" es stock igual o menor al mínimo (5 si no se indica).
+- **Registro de cambios (historial, HU-73):** cada cambio de stock se envía al historial de acciones de ms-usuarios (módulo `Stock`), con el valor anterior y el nuevo, el pedido y quién lo provocó: el cliente al comprar, el administrador al cancelar o aprobar una devolución. Las ediciones manuales quedan en la acción "Modificó el producto". Para ver el registro de un producto: `GET /api/acciones?texto=GTR-0001` en ms-usuarios.
 - **Ficha técnica:** texto `clave:valor;clave:valor`. Al guardar se valida y el error indica qué segmento falló. Al mostrar se entrega separada en filas, omitiendo segmentos mal formados.
 - **Reseñas:** solo si el cliente compró y recibió el producto, una por producto. Nacen `PENDIENTE` y solo las `APROBADA` son públicas. El promedio se calcula al consultar.
 
@@ -56,7 +54,6 @@ y su stock ocurre en una sola transacción.
 | PATCH | `/api/productos/{sku}/desactivar` y `/reactivar` | GESTIONAR_PRODUCTOS | HU-03 |
 | DELETE | `/api/productos/{sku}` | GESTIONAR_PRODUCTOS | HU-04 |
 | POST / PUT | `/api/productos/{sku}/ficha-tecnica` | GESTIONAR_PRODUCTOS | HU-05, HU-06 |
-| GET | `/api/inventario/{sku}/movimientos` | GESTIONAR_PRODUCTOS | HU-64 |
 | POST | `/api/resenas` | Cliente con sesión | HU-81 |
 | GET | `/api/resenas/producto/{sku}` | Público | HU-82 |
 | GET | `/api/resenas/admin?estado=&sku=&calificacion=` | GESTIONAR_RESENAS | HU-84, HU-88 |
@@ -69,12 +66,10 @@ y su stock ocurre en una sola transacción.
 
 | Método | Ruta | Uso |
 |---|---|---|
-| GET | `/api/inventario/{sku}` | Stock de un producto |
-| GET | `/api/inventario/stock?skus=A,B` | Stock de varios productos |
-| GET | `/api/inventario/{sku}/disponible?cantidad=` | ¿Alcanza el stock? (carrito) |
-| POST | `/api/inventario/{sku}/descontar` | Venta confirmada (HU-63) |
-| POST | `/api/inventario/{sku}/reponer` | Cancelación o devolución |
-| GET | `/api/inventario/bajo-stock` | Productos con stock bajo (dashboard) |
+| GET | `/api/productos/{sku}/stock` | Stock de un producto |
+| POST | `/api/productos/{sku}/descontar` `{cantidad, numeroPedido, rutResponsable}` | Venta confirmada (HU-63) |
+| POST | `/api/productos/{sku}/reponer` `{cantidad, numeroPedido, tipo, rutResponsable}` | Cancelación o devolución |
+| GET | `/api/productos/bajo-stock` | Productos con stock bajo (reportes) |
 
 ## Dependencias con ms-ventas
 
