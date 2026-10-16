@@ -1,5 +1,9 @@
 package chibson.usuarios.controller;
 
+import java.time.LocalDate;
+
+import org.springframework.format.annotation.DateTimeFormat;
+
 import chibson.usuarios.dto.PerfilDTO;
 import chibson.usuarios.dto.RolDTO;
 import chibson.usuarios.dto.UsuarioAdminDTO;
@@ -63,10 +67,12 @@ public class UsuarioController {
         return UsuarioDTO.desde(usuarioService.findByRut(rut));
     }
 
-    /** Clientes registrados hoy; lo usa el dashboard (HU-52). */
-    @GetMapping("/registrados-hoy")
-    public long contarRegistradosHoy() {
-        return usuarioService.contarRegistradosHoy();
+    /** Clientes registrados entre dos fechas (AAAA-MM-DD); lo usa ms-informes (HU-50). Sin fechas: hoy. */
+    @GetMapping("/registrados/contar")
+    public long contarClientesRegistrados(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate desde,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate hasta) {
+        return usuarioService.contarClientesRegistrados(desde, hasta);
     }
 
     // ---------- Panel de administración (permiso GESTIONAR_USUARIOS) ----------

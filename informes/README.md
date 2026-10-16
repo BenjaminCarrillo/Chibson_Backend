@@ -1,97 +1,117 @@
 # ms-informes
 
-Microservicio del dominio **Informes** de Chibson Instruments:
+Microservicio del dominio **Reportes** de Chibson Instruments (EP6):
 
-- **Dashboard** (HU-50 a HU-56): tarjetas KPI, resumen rápido, gráficos y tablas.
-- **Informes** (HU-45 a HU-47): ventas por periodo, estado de pedidos y productos más vendidos.
+- **Reportes manuales** (HU-45 a HU-48): ventas por periodo, estado de pedidos y productos más vendidos.
+- **Resumen general automático** (HU-49, HU-50): uno por semana y uno por mes.
+- **Reportes guardados** (HU-60 a HU-62): listado, detalle y eliminación.
 
-Puerto **8086**. **No tiene base de datos:** cada vez que se pide algo, consulta a los otros
-microservicios y calcula el resultado. Por eso los datos siempre están actualizados.
+Puerto **8086**, base de datos MySQL **chibson_informes**. Cada reporte se guarda con sus filas tal como
+quedó al generarse, así que no cambia aunque después cambien las ventas (HU-61).
 
 El registro de ventas (HU-57 a HU-59) está en ms-ventas.
 
 ## Cómo ejecutarlo
 
-1. Levantar **ms-usuarios** (8081), **ms-productos** (8082), **ms-ventas** (8083) y **ms-soporte** (8084).
-2. Ejecutar `InformesApplication`.
-3. Para tener datos, ejecutar antes la colección de Postman de ms-ventas.
-4. Importar `chibson-informes.postman_collection.json` y probar.
-
-> En el `pom.xml` se quitaron JPA, H2 y el conector de MySQL que venían del Initializr, porque este
-> microservicio no guarda nada. Sin ellos Spring no intenta conectarse a una base de datos.
+1. Tener MySQL encendido. La base `chibson_informes` se crea sola.
+2. Levantar **ms-usuarios** (8081), **ms-productos** (8087), **ms-ventas** (8083) y **ms-soporte** (8084).
+3. Ejecutar `InformesApplication`. Al arrancar genera los resúmenes automáticos que falten (ver abajo).
+4. Para tener datos, ejecutar antes la colección de Postman de ms-ventas.
+5. Importar `chibson-informes.postman_collection.json` y ejecutar las carpetas en orden.
 
 ## Estructura
 
 ```
 chibson.informes
-├── model        Dashboard, Informe, TipoInforme, Periodo   (clases simples, no son entidades)
-├── service      DashboardService, InformeService, Calculos, Permisos
-├── controller   DashboardController, InformeController
-├── dto          PedidoDTO, DetalleDTO, ProductoDTO          (lo que llega de otros microservicios)
-│                PuntoGraficoDTO, ProductoVendidoDTO, StockBajoDTO (respuestas de gráficos y tablas)
+├── model        Reporte, FilaReporte, TipoReporte, Periodo, OrigenReporte
+├── repository   ReporteRepository
+├── service      ReporteService (guardar, listar, ver, eliminar), GeneradorReportes (contenido de cada tipo),
+│                ReportesAutomaticos (@Scheduled y pendientes al iniciar), Calculos, Permisos
+├── controller   ReporteController
+├── dto          PedidoDTO, ItemDTO, ReembolsoDTO, ProductoDTO   (lo que llega de otros microservicios)
+│                GenerarReporteDTO, ReporteListadoDTO, ProductoVendidoDTO
 ├── client       VentasClient, ProductosClient, UsuariosClient, SoporteClient
 └── config       RestTemplateConfig
 ```
-
-## De dónde sale cada dato
-
-| Dato | Microservicio | Endpoint |
-|---|---|---|
-| Pedidos con fecha, estado, total, región y líneas | ms-ventas | `GET /api/pedidos/resumen?desde=&hasta=` |
-| Devoluciones pendientes | ms-ventas | `GET /api/devoluciones/pendientes/contar` |
-| Productos con stock bajo | ms-productos | `GET /api/inventario/bajo-stock` |
-| Clientes registrados hoy | ms-usuarios | `GET /api/usuarios/registrados-hoy` |
-| Tickets sin resolver | ms-soporte | `GET /api/tickets/abiertos/contar` |
-| Permiso `VER_INFORMES` | ms-usuarios | `GET /api/roles/verificar` |
-
-## Reglas de cálculo
-
-- **Venta:** un pedido con pago aprobado que no fue cancelado. Los cancelados no suman, porque su stock se repuso.
-- **Montos:** el total de cada venta incluye el envío. Ventas por categoría y productos más vendidos
-  usan el subtotal de cada línea (precio × cantidad), sin envío.
-- **Ticket promedio:** total vendido dividido por el número de ventas.
-- **Variación del mes (HU-50):** compara del día 1 a hoy con el mismo rango de días del mes anterior.
-  Si el mes anterior no tuvo ventas, queda null y el frontend muestra "sin comparación".
-- **Pedidos pendientes:** pedidos pagados que todavía no se despachan (PAGADO o EN_PROCESO).
-- **Stock bajo (HU-56):** `nivel` es CRITICO si el producto está agotado o tiene la mitad de su mínimo
-  o menos, y BAJO en otro caso. El frontend lo pinta rojo o amarillo.
-- **Si un microservicio no responde:**
-  - Sin ms-ventas no hay informe ni dashboard: responde 503.
-  - Tickets, clientes nuevos, devoluciones y stock bajo de las tarjetas quedan en null y el resto
-    del dashboard se muestra igual.
 
 ## Endpoints (todos con permiso VER_INFORMES)
 
 | Método | Ruta | HU |
 |---|---|---|
-| GET | `/api/dashboard/kpis` | 50, 52 |
-| GET | `/api/dashboard/ventas-7-dias` | 51 |
-| GET | `/api/dashboard/ventas-categoria` | 53 |
-| GET | `/api/dashboard/top-productos` | 54 |
-| GET | `/api/dashboard/pedidos-region` | 55 |
-| GET | `/api/dashboard/stock-bajo` | 56 |
-| GET | `/api/informes/ventas?periodo=&desde=&hasta=` | 45 |
-| GET | `/api/informes/pedidos?desde=&hasta=` | 46 |
-| GET | `/api/informes/productos?desde=&hasta=&categoria=` | 47 |
+| POST | `/api/reportes` `{tipo, periodo, desde, hasta, categoria}` | 45 a 48 |
+| GET | `/api/reportes?tipo=&origen=&desde=&hasta=` | 60 |
+| GET | `/api/reportes/{id}` | 61 |
+| DELETE | `/api/reportes/{id}` | 62 |
 
-- **periodo:** `DIARIO`, `MENSUAL` o `ANUAL` toman el día, mes o año de `desde` (hoy si no se indica).
-  `PERSONALIZADO` necesita `desde` y `hasta`. Las filas van por día, o por mes si el rango supera los 62 días.
-- **Informe de pedidos:** sin fechas incluye todos los pedidos. Cada fila trae los números de pedido
-  para abrir su detalle en `GET /api/pedidos/{numero}` de ms-ventas.
-- **Productos más vendidos:** sin fechas usa el mes en curso.
-- Cuando un informe no tiene datos, el campo `mensaje` lo indica (HU-45 criterio 3).
+Ejemplo:
 
-## Lo que hace el frontend
+```json
+{ "tipo": "PRODUCTOS_MAS_VENDIDOS", "periodo": "MENSUAL", "desde": "2026-10-01", "categoria": "GUITARRA" }
+```
 
-Algunos criterios son de presentación y quedan para las páginas HTML:
+- **tipo:** `VENTAS_POR_PERIODO`, `ESTADO_PEDIDOS` o `PRODUCTOS_MAS_VENDIDOS`. `RESUMEN_GENERAL` responde 400
+  porque solo es automático (HU-50 criterio 6).
+- **periodo:** `DIARIO`, `SEMANAL`, `MENSUAL` o `ANUAL` toman el día, la semana (lunes a domingo), el mes o
+  el año de `desde` (hoy si no viene). `PERSONALIZADO` necesita `desde` y `hasta`.
+- **categoria:** opcional, solo para productos más vendidos.
+- En el listado, `desde` y `hasta` filtran por la fecha de creación del reporte.
+- La confirmación antes de eliminar (HU-62) la pide el frontend.
 
-- Tarjetas clickeables (HU-50 c3), colores e íconos de la variación (HU-50 c2) y los textos de "0"
-  (HU-50 c4, HU-52 c3).
-- Formato CLP en los gráficos (HU-51 c2, HU-53 c2) y el mensaje "No hay ventas registradas en los
-  últimos 7 días" cuando los 7 puntos están en 0 (HU-51 c3).
-- Enlaces a los listados completos (HU-54 c2, HU-55 c3, HU-56 c3).
+## Qué trae cada reporte
 
-## Fuera de alcance
+Los datos generales van en el reporte (`totalVentas`, `numeroPedidos`, `ticketPromedio`, `mensaje`) y el
+detalle en `filas`. Cada fila tiene `seccion`, `etiqueta`, `cantidad`, `monto`, y a veces `valor` (texto) y
+`referencia` (número de pedido o SKU para abrir el detalle).
 
-- HU-48 y HU-49 (exportar a PDF y Excel) y HU-60 a HU-62 (informes guardados), porque necesitan
-  generar archivos, que el curso aún no ve. Por eso `Informe` no se guarda.
+| Tipo | Secciones de las filas |
+|---|---|
+| Ventas por periodo | `TOTALES` (brutas, reembolsos, netas) y `POR_DIA`, o `POR_MES` si el rango supera 62 días |
+| Estado de pedidos | `RESUMEN` (cantidad y monto por estado) y una sección por estado con cada pedido |
+| Productos más vendidos | `RANKING` (unidades e ingresos netos; categoría en `valor`, SKU en `referencia`) |
+| Resumen general | `INDICADORES`, `TOP_5`, `POR_CATEGORIA`, `POR_REGION` y `STOCK_BAJO` |
+
+Si el periodo no tiene datos, el reporte se guarda igual y `mensaje` lo indica (HU-45 c3, HU-48 c4).
+
+## Resumen general automático (HU-49)
+
+- **Cada lunes a las 00:05** genera el de la semana anterior (lunes a domingo).
+- **El día 1 a las 00:10** genera el del mes anterior.
+- **Al iniciar** genera los de las semanas y meses ya cerrados que falten, desde el primer pedido
+  registrado. Cubre el caso de que el servicio estuviera apagado a la hora programada.
+- Nunca repite un periodo que ya tiene su resumen automático.
+- Se programa con `@Scheduled` y necesita `@EnableScheduling` en `InformesApplication`. Las horas son de
+  Chile (`America/Santiago`).
+- Si ms-ventas no responde, el error queda en el log y ese periodo se genera la próxima vez que arranque.
+- `reportes.automaticos.activos=false` en `application.properties` lo desactiva (las pruebas lo usan así).
+
+Con datos creados hoy no aparece ningún resumen todavía, porque la semana en curso no ha cerrado: el
+primero se genera el lunes siguiente o al reiniciar el servicio después de ese lunes.
+
+## Reglas de cálculo
+
+- **Venta:** un pedido con pago aprobado que no fue cancelado. Se cuenta por la fecha del pedido.
+- **Reembolsos (HU-45 c4):** se descuentan en el periodo de la **fecha del reembolso**, no en el de la
+  compra. ms-ventas entrega los pedidos del rango y también los anteriores que tuvieron un reembolso en
+  él. Así un reporte ya generado no cambia cuando se reembolsa algo de un periodo pasado.
+- **Montos:** el total de cada venta incluye el envío. Productos más vendidos y ventas por categoría usan
+  el subtotal de cada línea (precio × cantidad), sin envío. Un producto que queda en 0 unidades netas no
+  aparece en el ranking.
+- **Ticket promedio:** ventas netas divididas por el número de ventas.
+- **Variación (HU-50):** ventas netas del periodo contra las de la semana o el mes anterior. Si el anterior
+  no tuvo ventas, `valor` dice "Sin ventas en el periodo anterior".
+- **Indicadores del momento:** pedidos pendientes de despacho (PAGADO o EN_PROCESO), stock bajo, tickets
+  abiertos y devoluciones pendientes son los que había al generar el reporte.
+- **Si un microservicio no responde:** sin ms-ventas no hay reporte (503 en los manuales). En el resumen
+  general, los indicadores de usuarios, productos o soporte quedan con el texto "Sin datos: ... no
+  respondió", nunca vacíos (HU-50 c4).
+
+## De dónde sale cada dato
+
+| Dato | Microservicio | Endpoint |
+|---|---|---|
+| Pedidos con fecha, estado, total, región, productos y reembolsos | ms-ventas | `GET /api/pedidos/resumen?desde=&hasta=` |
+| Devoluciones pendientes | ms-ventas | `GET /api/devoluciones/pendientes/contar` |
+| Productos con stock bajo | ms-productos | `GET /api/productos/bajo-stock` |
+| Clientes registrados en el periodo | ms-usuarios | `GET /api/usuarios/registrados/contar?desde=&hasta=` |
+| Tickets sin resolver | ms-soporte | `GET /api/tickets/abiertos/contar` |
+| Permiso `VER_INFORMES` | ms-usuarios | `GET /api/roles/verificar` |

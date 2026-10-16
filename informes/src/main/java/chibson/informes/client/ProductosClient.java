@@ -27,12 +27,12 @@ public class ProductosClient {
     /** Productos activos con stock igual o menor a su mínimo. 503 si ms-productos no responde. */
     public List<ProductoDTO> obtenerStockBajo() {
         try {
-            ProductoDTO[] productos = restTemplate.getForObject(urlProductos + "/api/inventario/bajo-stock",
+            ProductoDTO[] productos = restTemplate.getForObject(urlProductos + "/api/productos/bajo-stock",
                     ProductoDTO[].class);
             return productos == null ? List.of() : Arrays.asList(productos);
         } catch (RestClientException e) {
             throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
-                    "No se pudo consultar el inventario. Intente más tarde");
+                    "No se pudo consultar el stock de los productos. Intente más tarde");
         }
     }
 }

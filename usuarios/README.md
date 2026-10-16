@@ -58,7 +58,7 @@ que ese usuario exista, esté activo y tenga el permiso necesario (HU-72):
 | POST | `/api/notificaciones` | Avisarle algo a un usuario |
 | GET | `/api/roles/verificar?rut=&permiso=` | Saber si un usuario tiene un permiso |
 | GET | `/api/usuarios/{rut}/datos` | Nombre y dirección del perfil (ventas, soporte) |
-| GET | `/api/usuarios/registrados-hoy` | Clientes nuevos del día (dashboard) |
+| GET | `/api/usuarios/registrados/contar?desde=&hasta=` | Clientes registrados en un rango (resumen general de ms-informes, HU-50) |
 
 ## Decisiones dentro del alcance
 

@@ -2,184 +2,16 @@
   "info": {
     "name": "Chibson · ms-informes",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Pruebas de HU-45 a HU-47 y HU-50 a HU-56. Conviene ejecutar antes la colección de ms-ventas para tener datos, con todos los microservicios corriendo."
+    "description": "Pruebas de HU-45 a HU-50 y HU-60 a HU-62. Ejecutar antes la colección de ms-ventas para tener datos, con todos los microservicios corriendo."
   },
   "item": [
     {
-      "name": "1. Dashboard",
+      "name": "1. Generar reportes manuales (HU-48)",
       "item": [
         {
-          "name": "Tarjetas KPI y resumen rápido (HU-50, HU-52)",
+          "name": "Error: sin sesión",
           "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/dashboard/kpis",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "dashboard",
-                "kpis"
-              ]
-            },
-            "description": "200. Ventas del día y del mes, variación, pedidos pendientes, stock bajo, tickets abiertos, ticket promedio, producto más vendido, clientes nuevos y devoluciones pendientes. Un valor null significa que ese microservicio no respondió."
-          }
-        },
-        {
-          "name": "Ventas de los últimos 7 días (HU-51)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/dashboard/ventas-7-dias",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "dashboard",
-                "ventas-7-dias"
-              ]
-            },
-            "description": "200. Siempre 7 puntos; los días sin ventas van en 0."
-          }
-        },
-        {
-          "name": "Ventas por categoría del mes (HU-53)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/dashboard/ventas-categoria",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "dashboard",
-                "ventas-categoria"
-              ]
-            },
-            "description": "200. Solo categorías con ventas, de mayor a menor."
-          }
-        },
-        {
-          "name": "Top 5 productos del mes (HU-54)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/dashboard/top-productos",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "dashboard",
-                "top-productos"
-              ]
-            },
-            "description": "200."
-          }
-        },
-        {
-          "name": "Pedidos por región del mes (HU-55)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/dashboard/pedidos-region",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "dashboard",
-                "pedidos-region"
-              ]
-            },
-            "description": "200."
-          }
-        },
-        {
-          "name": "Productos con stock bajo (HU-56)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/dashboard/stock-bajo",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "dashboard",
-                "stock-bajo"
-              ]
-            },
-            "description": "200. Con nivel CRITICO o BAJO."
-          }
-        },
-        {
-          "name": "Error: sin sesión (HU-72)",
-          "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
@@ -187,23 +19,31 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/dashboard/kpis",
+              "raw": "{{base}}/api/reportes",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "dashboard",
-                "kpis"
+                "reportes"
               ]
             },
-            "description": "401."
+            "description": "401.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VENTAS_POR_PERIODO\",\n  \"periodo\": \"MENSUAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         },
         {
-          "name": "Error: cliente sin permiso (HU-72)",
+          "name": "Error: cliente sin permiso VER_INFORMES",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
               {
                 "key": "Content-Type",
@@ -215,26 +55,452 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/dashboard/kpis",
+              "raw": "{{base}}/api/reportes",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "dashboard",
-                "kpis"
+                "reportes"
               ]
             },
-            "description": "403."
+            "description": "403.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VENTAS_POR_PERIODO\",\n  \"periodo\": \"MENSUAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: sin tipo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"periodo\": \"MENSUAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: resumen general manual (HU-50)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "400. El resumen general solo se genera automáticamente.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"RESUMEN_GENERAL\",\n  \"periodo\": \"MENSUAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: personalizado sin hasta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VENTAS_POR_PERIODO\",\n  \"periodo\": \"PERSONALIZADO\",\n  \"desde\": \"2026-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Error: desde posterior a hasta",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "400.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VENTAS_POR_PERIODO\",\n  \"periodo\": \"PERSONALIZADO\",\n  \"desde\": \"2026-12-31\",\n  \"hasta\": \"2026-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ventas del mes en curso (HU-45)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "201. origen MANUAL, con el RUT del administrador. totalVentas es neto de reembolsos: con los datos de la colección de ventas, 1.695.000 − 890.000 = 805.000. Filas TOTALES (brutas, reembolsos, netas) y POR_DIA. Guarda el id en {{idReporte}}.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VENTAS_POR_PERIODO\",\n  \"periodo\": \"MENSUAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"idReporte\", pm.response.json().idReporte);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Ventas de la semana en curso (HU-45)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "201. Lunes a domingo de esta semana.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VENTAS_POR_PERIODO\",\n  \"periodo\": \"SEMANAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ventas personalizado (HU-45)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "201.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VENTAS_POR_PERIODO\",\n  \"periodo\": \"PERSONALIZADO\",\n  \"desde\": \"2026-01-01\",\n  \"hasta\": \"2030-12-31\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Ventas de un día sin datos (HU-45, HU-48)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "201. Se guarda igual y trae el mensaje \"No hay ventas registradas entre 2020-01-01 y 2020-01-01\". Guarda el id en {{idReporteEliminar}} para la carpeta 4.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"VENTAS_POR_PERIODO\",\n  \"periodo\": \"DIARIO\",\n  \"desde\": \"2020-01-01\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.collectionVariables.set(\"idReporteEliminar\", pm.response.json().idReporte);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Estado de pedidos del año (HU-46)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "201. Filas RESUMEN con la cantidad y el monto por estado, y una fila por pedido en la sección de su estado; referencia = número de pedido para abrir el detalle.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"ESTADO_PEDIDOS\",\n  \"periodo\": \"ANUAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Productos más vendidos del mes (HU-47)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "201. Ranking por unidades netas: la guitarra queda con 1 unidad (2 vendidas − 1 reembolsada) y el pedal no aparece (1 − 1 = 0).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"PRODUCTOS_MAS_VENDIDOS\",\n  \"periodo\": \"MENSUAL\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Productos más vendidos por categoría (HU-47)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
+              ]
+            },
+            "description": "201. categoria GUITARRA.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tipo\": \"PRODUCTOS_MAS_VENDIDOS\",\n  \"periodo\": \"ANUAL\",\n  \"categoria\": \"guitarra\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
           }
         }
       ]
     },
     {
-      "name": "2. Informe de ventas (HU-45)",
+      "name": "2. Listado (HU-60)",
       "item": [
         {
-          "name": "Hoy",
+          "name": "Todos los reportes",
           "request": {
             "method": "GET",
             "header": [
@@ -248,19 +514,45 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/ventas?periodo=DIARIO",
+              "raw": "{{base}}/api/reportes",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "ventas"
+                "reportes"
+              ]
+            },
+            "description": "200. Del más reciente al más antiguo, sin las filas."
+          }
+        },
+        {
+          "name": "Filtrar por tipo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes?tipo=PRODUCTOS_MAS_VENDIDOS",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes"
               ],
               "query": [
                 {
-                  "key": "periodo",
-                  "value": "DIARIO"
+                  "key": "tipo",
+                  "value": "PRODUCTOS_MAS_VENDIDOS"
                 }
               ]
             },
@@ -268,7 +560,7 @@
           }
         },
         {
-          "name": "Mes en curso",
+          "name": "Filtrar por origen manual",
           "request": {
             "method": "GET",
             "header": [
@@ -282,27 +574,26 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/ventas?periodo=MENSUAL",
+              "raw": "{{base}}/api/reportes?origen=MANUAL",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "ventas"
+                "reportes"
               ],
               "query": [
                 {
-                  "key": "periodo",
-                  "value": "MENSUAL"
+                  "key": "origen",
+                  "value": "MANUAL"
                 }
               ]
             },
-            "description": "200. Una fila por día con ventas."
+            "description": "200."
           }
         },
         {
-          "name": "Un mes anterior",
+          "name": "Resúmenes automáticos (HU-49)",
           "request": {
             "method": "GET",
             "header": [
@@ -316,31 +607,26 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/ventas?periodo=MENSUAL&desde=2026-01-01",
+              "raw": "{{base}}/api/reportes?origen=AUTOMATICO",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "ventas"
+                "reportes"
               ],
               "query": [
                 {
-                  "key": "periodo",
-                  "value": "MENSUAL"
-                },
-                {
-                  "key": "desde",
-                  "value": "2026-01-01"
+                  "key": "origen",
+                  "value": "AUTOMATICO"
                 }
               ]
             },
-            "description": "200. Enero 2026; si no hubo ventas trae el mensaje \"No hay ventas registradas...\"."
+            "description": "200. Resúmenes generales semanales y mensuales que se generaron al iniciar o a la hora programada. Si todos los pedidos son de esta semana todavía no hay ninguno: el primero aparece el lunes."
           }
         },
         {
-          "name": "Año en curso",
+          "name": "Filtrar por fecha de creación",
           "request": {
             "method": "GET",
             "header": [
@@ -354,54 +640,15 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/ventas?periodo=ANUAL",
+              "raw": "{{base}}/api/reportes?desde=2026-01-01&hasta=2030-12-31",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "ventas"
+                "reportes"
               ],
               "query": [
-                {
-                  "key": "periodo",
-                  "value": "ANUAL"
-                }
-              ]
-            },
-            "description": "200. Una fila por mes."
-          }
-        },
-        {
-          "name": "Personalizado",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/informes/ventas?periodo=PERSONALIZADO&desde=2026-01-01&hasta=2030-12-31",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "informes",
-                "ventas"
-              ],
-              "query": [
-                {
-                  "key": "periodo",
-                  "value": "PERSONALIZADO"
-                },
                 {
                   "key": "desde",
                   "value": "2026-01-01"
@@ -416,7 +663,7 @@
           }
         },
         {
-          "name": "Error: sin periodo",
+          "name": "Error: rango inválido",
           "request": {
             "method": "GET",
             "header": [
@@ -430,82 +677,15 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/ventas",
+              "raw": "{{base}}/api/reportes?desde=2026-12-31&hasta=2026-01-01",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "ventas"
-              ]
-            },
-            "description": "400."
-          }
-        },
-        {
-          "name": "Error: personalizado sin fechas",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/informes/ventas?periodo=PERSONALIZADO",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "informes",
-                "ventas"
+                "reportes"
               ],
               "query": [
-                {
-                  "key": "periodo",
-                  "value": "PERSONALIZADO"
-                }
-              ]
-            },
-            "description": "400."
-          }
-        },
-        {
-          "name": "Error: rango invertido",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/informes/ventas?periodo=PERSONALIZADO&desde=2026-12-31&hasta=2026-01-01",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "informes",
-                "ventas"
-              ],
-              "query": [
-                {
-                  "key": "periodo",
-                  "value": "PERSONALIZADO"
-                },
                 {
                   "key": "desde",
                   "value": "2026-12-31"
@@ -518,85 +698,37 @@
             },
             "description": "400."
           }
-        }
-      ]
-    },
-    {
-      "name": "3. Informe de estado de pedidos (HU-46)",
-      "item": [
-        {
-          "name": "Todos los pedidos",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
-              }
-            ],
-            "url": {
-              "raw": "{{base}}/api/informes/pedidos",
-              "host": [
-                "{{base}}"
-              ],
-              "path": [
-                "api",
-                "informes",
-                "pedidos"
-              ]
-            },
-            "description": "200. Una fila por estado con la cantidad, el monto y los números de pedido."
-          }
         },
         {
-          "name": "Filtrado por fechas",
+          "name": "Error: sin sesión",
           "request": {
             "method": "GET",
             "header": [
               {
                 "key": "Content-Type",
                 "value": "application/json"
-              },
-              {
-                "key": "X-Rut-Usuario",
-                "value": "{{rutAdmin}}"
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/pedidos?desde=2026-01-01&hasta=2030-12-31",
+              "raw": "{{base}}/api/reportes",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "pedidos"
-              ],
-              "query": [
-                {
-                  "key": "desde",
-                  "value": "2026-01-01"
-                },
-                {
-                  "key": "hasta",
-                  "value": "2030-12-31"
-                }
+                "reportes"
               ]
             },
-            "description": "200."
+            "description": "401."
           }
         }
       ]
     },
     {
-      "name": "4. Informe de productos más vendidos (HU-47)",
+      "name": "3. Ver un reporte (HU-61)",
       "item": [
         {
-          "name": "Mes en curso",
+          "name": "Ver reporte guardado",
           "request": {
             "method": "GET",
             "header": [
@@ -610,21 +742,21 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/productos",
+              "raw": "{{base}}/api/reportes/{{idReporte}}",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "productos"
+                "reportes",
+                "{{idReporte}}"
               ]
             },
-            "description": "200. Ranking por unidades, con ingresos."
+            "description": "200. Con todas sus filas, tal como se generó: si después se registra otra venta, este reporte no cambia."
           }
         },
         {
-          "name": "Por categoría y fechas",
+          "name": "Error: reporte inexistente",
           "request": {
             "method": "GET",
             "header": [
@@ -638,35 +770,54 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/productos?desde=2026-01-01&hasta=2030-12-31&categoria=GUITARRA",
+              "raw": "{{base}}/api/reportes/99999",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "productos"
-              ],
-              "query": [
-                {
-                  "key": "desde",
-                  "value": "2026-01-01"
-                },
-                {
-                  "key": "hasta",
-                  "value": "2030-12-31"
-                },
-                {
-                  "key": "categoria",
-                  "value": "GUITARRA"
-                }
+                "reportes",
+                "99999"
               ]
             },
-            "description": "200."
+            "description": "404."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Eliminar (HU-62)",
+      "item": [
+        {
+          "name": "Eliminar reporte",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes/{{idReporteEliminar}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "{{idReporteEliminar}}"
+              ]
+            },
+            "description": "204. La confirmación la pide el frontend antes de llamar."
           }
         },
         {
-          "name": "Categoría sin ventas",
+          "name": "El eliminado ya no se puede abrir",
           "request": {
             "method": "GET",
             "header": [
@@ -680,23 +831,45 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/informes/productos?categoria=VIENTO",
+              "raw": "{{base}}/api/reportes/{{idReporteEliminar}}",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "informes",
-                "productos"
-              ],
-              "query": [
-                {
-                  "key": "categoria",
-                  "value": "VIENTO"
-                }
+                "reportes",
+                "{{idReporteEliminar}}"
               ]
             },
-            "description": "200. Sin filas y con el mensaje correspondiente."
+            "description": "404."
+          }
+        },
+        {
+          "name": "Error: cliente sin permiso",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutCliente}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/reportes/{{idReporte}}",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "reportes",
+                "{{idReporte}}"
+              ]
+            },
+            "description": "403."
           }
         }
       ]
@@ -705,7 +878,7 @@
       "name": "5. Datos que entrega ms-ventas",
       "item": [
         {
-          "name": "Resumen de pedidos",
+          "name": "Resumen de pedidos con reembolsos",
           "request": {
             "method": "GET",
             "header": [
@@ -715,7 +888,7 @@
               }
             ],
             "url": {
-              "raw": "{{ventas}}/api/pedidos/resumen?desde=2026-01-01",
+              "raw": "{{ventas}}/api/pedidos/resumen?desde=2026-01-01&hasta=2030-12-31",
               "host": [
                 "{{ventas}}"
               ],
@@ -728,10 +901,14 @@
                 {
                   "key": "desde",
                   "value": "2026-01-01"
+                },
+                {
+                  "key": "hasta",
+                  "value": "2030-12-31"
                 }
               ]
             },
-            "description": "200 en ms-ventas."
+            "description": "200. Lo que usa este microservicio para calcular los reportes."
           }
         },
         {
@@ -756,7 +933,7 @@
                 "contar"
               ]
             },
-            "description": "Número en ms-ventas."
+            "description": "200."
           }
         }
       ]
@@ -778,6 +955,14 @@
     {
       "key": "rutCliente",
       "value": "17777777-3"
+    },
+    {
+      "key": "idReporte",
+      "value": ""
+    },
+    {
+      "key": "idReporteEliminar",
+      "value": ""
     }
   ]
 }

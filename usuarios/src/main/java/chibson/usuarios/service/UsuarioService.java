@@ -192,9 +192,17 @@ public class UsuarioService {
         return usuarioRepository.save(usuario);
     }
 
-    /** Clientes registrados hoy; lo usa el dashboard (HU-52). */
-    public long contarRegistradosHoy() {
-        return usuarioRepository.countByFechaRegistro(LocalDate.now());
+    /**
+     * Clientes registrados entre dos fechas (ambas incluidas); lo usa ms-informes para el resumen
+     * general (HU-50). Sin fechas cuenta los de hoy.
+     */
+    public long contarClientesRegistrados(LocalDate desde, LocalDate hasta) {
+        LocalDate inicio = desde == null ? LocalDate.now() : desde;
+        LocalDate fin = hasta == null ? inicio : hasta;
+        if (inicio.isAfter(fin)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "La fecha desde no puede ser posterior a hasta");
+        }
+        return usuarioRepository.countByFechaRegistroBetweenAndRolNombre(inicio, fin, Rol.CLIENTE);
     }
 
     private Usuario cambiarEstado(Usuario usuario, EstadoUsuario nuevo, TipoAccion tipo, String verbo,

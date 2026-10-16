@@ -1,9 +1,11 @@
 package chibson.informes.model;
 
-/** Rangos que se pueden elegir en el informe de ventas (HU-45). */
+/** Periodo de un reporte (HU-45, HU-48, HU-49). */
 public enum Periodo {
     /** Un día. */
     DIARIO,
+    /** Una semana de lunes a domingo. */
+    SEMANAL,
     /** Un mes completo. */
     MENSUAL,
     /** Un año completo. */

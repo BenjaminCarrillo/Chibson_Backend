@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-/** Producto con sus unidades vendidas e ingresos (HU-47, HU-54). */
+/** Producto con sus unidades vendidas e ingresos (HU-47, HU-50). */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

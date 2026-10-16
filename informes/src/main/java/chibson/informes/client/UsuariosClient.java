@@ -1,5 +1,7 @@
 package chibson.informes.client;
 
+import java.time.LocalDate;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,12 +43,13 @@ public class UsuariosClient {
         }
     }
 
-    /** Usuarios registrados hoy (HU-52). null si ms-usuarios no responde. */
-    public Long contarRegistradosHoy() {
+    /** Clientes registrados entre dos fechas, ambas incluidas (HU-50). null si ms-usuarios no responde. */
+    public Long contarClientesRegistrados(LocalDate desde, LocalDate hasta) {
         try {
-            return restTemplate.getForObject(urlUsuarios + "/api/usuarios/registrados-hoy", Long.class);
+            return restTemplate.getForObject(urlUsuarios + "/api/usuarios/registrados/contar?desde={desde}&hasta={hasta}",
+                    Long.class, desde.toString(), hasta.toString());
         } catch (RestClientException e) {
-            log.warn("No se pudo contar los usuarios registrados hoy: {}", e.getMessage());
+            log.warn("No se pudo contar los clientes registrados: {}", e.getMessage());
             return null;
         }
     }

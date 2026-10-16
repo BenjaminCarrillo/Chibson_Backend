@@ -30,7 +30,7 @@ public class VentasClient {
     }
 
     /**
-     * Pedidos creados entre las fechas (null = sin límite). Sin estos datos no hay informe,
+     * Pedidos creados entre las fechas (null = sin límite). Sin estos datos no hay reporte,
      * así que si ms-ventas no responde se lanza 503.
      */
     public List<PedidoDTO> obtenerPedidos(LocalDate desde, LocalDate hasta) {
@@ -45,7 +45,7 @@ public class VentasClient {
         }
     }
 
-    /** Devoluciones pendientes (HU-52). null si ms-ventas no responde. */
+    /** Devoluciones pendientes (HU-50). null si ms-ventas no responde. */
     public Long contarDevolucionesPendientes() {
         try {
             return restTemplate.getForObject(urlVentas + "/api/devoluciones/pendientes/contar", Long.class);

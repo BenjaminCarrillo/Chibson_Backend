@@ -17,5 +17,8 @@ public interface UsuarioRepository extends JpaRepository<Usuario, String> {
 
     long countByFechaRegistro(LocalDate fecha);
 
+    /** Clientes registrados entre dos fechas, ambas incluidas (resumen general, HU-50). */
+    long countByFechaRegistroBetweenAndRolNombre(LocalDate desde, LocalDate hasta, String rol);
+
     List<Usuario> findAllByOrderByFechaRegistroDesc();
 }
