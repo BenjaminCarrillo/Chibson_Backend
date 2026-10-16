@@ -2,7 +2,7 @@
   "info": {
     "name": "Chibson · API Gateway",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "description": "Comprueba que el gateway (8080) reenvía a cada microservicio y que CORS responde bien."
+    "description": "Comprueba que el gateway (8088) reenvía a cada microservicio y que CORS responde bien."
   },
   "item": [
     {
@@ -88,11 +88,35 @@
                 "productos"
               ]
             },
-            "description": "200 desde ms-productos (8082)."
+            "description": "200 desde ms-productos (8087)."
           }
         },
         {
-          "name": "ms-ventas: carrito",
+          "name": "ms-productos: productos con stock bajo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/productos/bajo-stock",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "productos",
+                "bajo-stock"
+              ]
+            },
+            "description": "200 desde ms-productos (8087). El stock ahora es parte de /api/productos."
+          }
+        },
+        {
+          "name": "ms-ventas: pedidos",
           "request": {
             "method": "GET",
             "header": [
@@ -106,13 +130,13 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/carrito",
+              "raw": "{{base}}/api/pedidos",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "carrito"
+                "pedidos"
               ]
             },
             "description": "200 desde ms-ventas (8083)."
@@ -170,7 +194,7 @@
           }
         },
         {
-          "name": "ms-informes: KPIs",
+          "name": "ms-informes: reportes guardados",
           "request": {
             "method": "GET",
             "header": [
@@ -184,14 +208,13 @@
               }
             ],
             "url": {
-              "raw": "{{base}}/api/dashboard/kpis",
+              "raw": "{{base}}/api/reportes",
               "host": [
                 "{{base}}"
               ],
               "path": [
                 "api",
-                "dashboard",
-                "kpis"
+                "reportes"
               ]
             },
             "description": "200 desde ms-informes (8086)."
@@ -218,6 +241,61 @@
               ]
             },
             "description": "404: ninguna ruta del gateway la atiende."
+          }
+        },
+        {
+          "name": "Ruta eliminada: carrito",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/carrito",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "carrito"
+              ]
+            },
+            "description": "404: el carro vive en el frontend y el gateway ya no tiene esta ruta."
+          }
+        },
+        {
+          "name": "Ruta eliminada: dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "X-Rut-Usuario",
+                "value": "{{rutAdmin}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base}}/api/dashboard/kpis",
+              "host": [
+                "{{base}}"
+              ],
+              "path": [
+                "api",
+                "dashboard",
+                "kpis"
+              ]
+            },
+            "description": "404: el dashboard se reemplazó por /api/reportes."
           }
         }
       ]
@@ -289,7 +367,7 @@
   "variable": [
     {
       "key": "base",
-      "value": "http://localhost:8080"
+      "value": "http://localhost:8088"
     },
     {
       "key": "rutAdmin",

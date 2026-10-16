@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8088
 
 spring:
   application:
@@ -38,14 +38,14 @@ spring:
                 - Path=/api/auth/**,/api/usuarios/**,/api/roles/**,/api/notificaciones/**,/api/acciones/**
 
             - id: ms-productos
-              uri: http://localhost:8082
+              uri: http://localhost:8087
               predicates:
-                - Path=/api/productos/**,/api/inventario/**,/api/resenas/**
+                - Path=/api/productos/**,/api/resenas/**
 
             - id: ms-ventas
               uri: http://localhost:8083
               predicates:
-                - Path=/api/carrito/**,/api/pedidos/**,/api/devoluciones/**,/api/ventas/**
+                - Path=/api/pedidos/**,/api/devoluciones/**,/api/ventas/**
 
             - id: ms-soporte
               uri: http://localhost:8084
@@ -60,4 +60,4 @@ spring:
             - id: ms-informes
               uri: http://localhost:8086
               predicates:
-                - Path=/api/dashboard/**,/api/informes/**
+                - Path=/api/reportes/**

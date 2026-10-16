@@ -1,7 +1,7 @@
 # API Gateway
 
 Puerta de entrada única del backend de Chibson Instruments. El frontend solo llama a
-`http://localhost:8080`, y el gateway reenvía cada petición al microservicio que corresponde
+`http://localhost:8088`, y el gateway reenvía cada petición al microservicio que corresponde
 según el comienzo de la ruta.
 
 Está hecho con **Spring Cloud Gateway** (versión 2025.1.2, compatible con Spring Boot 4.1).
@@ -9,7 +9,7 @@ No tiene código propio: las rutas y CORS se configuran en `src/main/resources/a
 
 ## Cómo ejecutarlo
 
-1. Levantar los microservicios que se vayan a usar (8081 a 8086).
+1. Levantar los microservicios que se vayan a usar (usuarios 8081, productos 8087, ventas 8083, soporte 8084, contenido 8085, informes 8086).
 2. Ejecutar `GatewayApplication`.
 3. Importar `chibson-gateway.postman_collection.json` y probar.
 
@@ -20,14 +20,14 @@ No necesita base de datos.
 | Ruta | Microservicio |
 |---|---|
 | `/api/auth`, `/api/usuarios`, `/api/roles`, `/api/notificaciones`, `/api/acciones` | ms-usuarios (8081) |
-| `/api/productos`, `/api/inventario`, `/api/resenas` | ms-productos (8082) |
-| `/api/carrito`, `/api/pedidos`, `/api/devoluciones`, `/api/ventas` | ms-ventas (8083) |
+| `/api/productos` (incluido el stock), `/api/resenas` | ms-productos (8087) |
+| `/api/pedidos`, `/api/devoluciones`, `/api/ventas` | ms-ventas (8083) |
 | `/api/tickets` | ms-soporte (8084) |
 | `/api/noticias`, `/api/institucional` | ms-contenido (8085) |
-| `/api/dashboard`, `/api/informes` | ms-informes (8086) |
+| `/api/reportes` | ms-informes (8086) |
 
-La ruta se reenvía tal cual. Por ejemplo, `GET http://localhost:8080/api/productos/GTR-0001`
-llega a ms-productos como `GET http://localhost:8082/api/productos/GTR-0001`, con los mismos
+La ruta se reenvía tal cual. Por ejemplo, `GET http://localhost:8088/api/productos/GTR-0001`
+llega a ms-productos como `GET http://localhost:8087/api/productos/GTR-0001`, con los mismos
 encabezados (incluido `X-Rut-Usuario`) y el mismo cuerpo.
 
 Si un microservicio está apagado, el gateway responde **503**. Una ruta que no está en la tabla responde **404**.
@@ -50,13 +50,13 @@ Postman no aplica CORS, así que para comprobarlo la colección envía un `OPTIO
 ## Uso desde el frontend
 
 ```js
-const API = "http://localhost:8080";
+const API = "http://localhost:8088";
 
 // Pública
 const productos = await fetch(`${API}/api/productos`).then(r => r.json());
 
 // Con sesión: el RUT que devolvió el login
-const carrito = await fetch(`${API}/api/carrito`, {
+const misPedidos = await fetch(`${API}/api/pedidos/mis-pedidos`, {
   headers: { "X-Rut-Usuario": sessionStorage.getItem("rut") }
 }).then(r => r.json());
 ```
