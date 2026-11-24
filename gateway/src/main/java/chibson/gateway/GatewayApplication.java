@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 /**
  * Puerta de entrada única del backend. El frontend solo conoce http://localhost:8088 y el
  * gateway reenvía cada petición al microservicio que corresponde según la ruta.
- * Las rutas y CORS están en application.yml; no hace falta código.
+ * Las rutas y CORS están en application.yml. La validación del JWT está en seguridad/FiltroJwt.
  */
 @SpringBootApplication
 public class GatewayApplication {

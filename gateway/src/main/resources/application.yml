@@ -1,6 +1,11 @@
 server:
   port: 8088
 
+# ---------- JWT ----------
+# Misma clave que jwt.secreto de ms-usuarios (si no son iguales, todos los tokens se rechazan)
+jwt:
+  secreto: chibson-instruments-clave-secreta-jwt-2026-duoc-uc
+
 spring:
   application:
     name: gateway
@@ -31,6 +36,8 @@ spring:
                 allowedHeaders:
                   - Content-Type
                   - X-Rut-Usuario
+                  # El frontend envía aquí el JWT: "Authorization: Bearer <token>"
+                  - Authorization
                 maxAge: 3600
 
           # ---------- Rutas: qué microservicio atiende cada /api/... ----------

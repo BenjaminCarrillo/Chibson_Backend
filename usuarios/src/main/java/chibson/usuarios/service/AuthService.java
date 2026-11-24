@@ -10,6 +10,7 @@ import chibson.usuarios.model.Permiso;
 import chibson.usuarios.model.Rol;
 import chibson.usuarios.model.Usuario;
 import chibson.usuarios.repository.UsuarioRepository;
+import chibson.usuarios.seguridad.JwtServicio;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,10 +24,12 @@ public class AuthService {
 
     private final UsuarioRepository usuarioRepository;
     private final RolService rolService;
+    private final JwtServicio jwtServicio;
 
-    public AuthService(UsuarioRepository usuarioRepository, RolService rolService) {
+    public AuthService(UsuarioRepository usuarioRepository, RolService rolService, JwtServicio jwtServicio) {
         this.usuarioRepository = usuarioRepository;
         this.rolService = rolService;
+        this.jwtServicio = jwtServicio;
     }
 
     /** El visitante crea su cuenta; queda como CLIENTE (HU-08). */
@@ -77,8 +80,11 @@ public class AuthService {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "La cuenta está desactivada");
         }
         List<String> permisos = usuario.getRol().getPermisos().stream().map(Permiso::getCodigo).sorted().toList();
+        // Si las credenciales son correctas se entrega el JWT que el frontend enviará en cada petición
+        String token = jwtServicio.generarToken(usuario);
         return new LoginRespuestaDTO(usuario.getRut(), usuario.getNombres(), usuario.getPrimerApellido(),
-                usuario.getUsername(), usuario.getRol().getNombre(), permisos);
+                usuario.getUsername(), usuario.getRol().getNombre(), permisos,
+                token, "Bearer", jwtServicio.getMinutosDeVida());
     }
 
     /**
