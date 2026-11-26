@@ -1,8 +1,5 @@
 package chibson.gateway.seguridad;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -13,6 +10,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
@@ -30,6 +29,7 @@ import java.util.List;
  *    encabezado como antes, por eso no hubo que cambiarlos.
  * 3. Sin token, o con un token inválido, solo se dejan pasar las rutas públicas (login, registro,
  *    catálogo, noticias...). El resto responde 401.
+ * 4. El token se reenvía al microservicio (Authorization), que lo vuelve a validar con Spring Security.
  */
 @Component
 public class FiltroJwt implements GlobalFilter, Ordered {
@@ -78,18 +78,19 @@ public class FiltroJwt implements GlobalFilter, Ordered {
         }
 
         try {
-            Claims datos = jwtServicio.validar(autorizacion.substring(PREFIJO.length()).trim());
+            Jwt datos = jwtServicio.validar(autorizacion.substring(PREFIJO.length()).trim());
             nueva.header(HEADER_RUT, datos.getSubject());
-        } catch (ExpiredJwtException e) {
-            if (!publica) {
-                return rechazar(exchange, "La sesión expiró. Inicie sesión nuevamente");
-            }
         } catch (JwtException | IllegalArgumentException e) {
             if (!publica) {
-                return rechazar(exchange, "El token no es válido. Inicie sesión nuevamente");
+                boolean vencido = e.getMessage() != null && e.getMessage().toLowerCase().contains("expired");
+                return rechazar(exchange, vencido
+                        ? "La sesión expiró. Inicie sesión nuevamente"
+                        : "El token no es válido. Inicie sesión nuevamente");
             }
+            // En una ruta pública con token vencido se sigue como visitante: se quita el token
+            // para que el microservicio tampoco lo rechace
+            nueva.headers(h -> h.remove(HttpHeaders.AUTHORIZATION));
         }
-        // En una ruta pública con token vencido se sigue como visitante (sin X-Rut-Usuario)
         return chain.filter(exchange.mutate().request(nueva.build()).build());
     }
 
