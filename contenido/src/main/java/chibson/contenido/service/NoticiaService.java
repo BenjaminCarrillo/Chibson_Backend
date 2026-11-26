@@ -25,10 +25,13 @@ public class NoticiaService {
 
     private final NoticiaRepository noticiaRepository;
     private final UsuariosClient usuariosClient;
+    private final ImagenService imagenService;
 
-    public NoticiaService(NoticiaRepository noticiaRepository, UsuariosClient usuariosClient) {
+    public NoticiaService(NoticiaRepository noticiaRepository, UsuariosClient usuariosClient,
+                          ImagenService imagenService) {
         this.noticiaRepository = noticiaRepository;
         this.usuariosClient = usuariosClient;
+        this.imagenService = imagenService;
     }
 
     // ---------- Vista pública (HU-77) ----------
@@ -67,7 +70,7 @@ public class NoticiaService {
         Noticia noticia = new Noticia();
         noticia.setTitulo(datos.getTitulo().trim());
         noticia.setContenido(datos.getContenido().trim());
-        noticia.setImagenUrl(vacioANull(datos.getImagenUrl()));
+        noticia.setImagen(imagenOpcional(datos.getImagen()));
         noticia.setCategoria(datos.getCategoria());
         boolean publicar = Boolean.TRUE.equals(datos.getPublicar());
         if (publicar) {
@@ -93,16 +96,16 @@ public class NoticiaService {
 
         String titulo = datos.getTitulo().trim();
         String contenido = datos.getContenido().trim();
-        String imagen = vacioANull(datos.getImagenUrl());
+        String imagen = imagenOpcional(datos.getImagen());
 
         anotar(cambios, "titulo", noticia.getTitulo(), titulo);
         anotar(cambios, "contenido", noticia.getContenido(), contenido);
-        anotar(cambios, "imagenUrl", noticia.getImagenUrl(), imagen);
+        anotar(cambios, "imagen", noticia.getImagen(), imagen);
         anotar(cambios, "categoria", noticia.getCategoria(), datos.getCategoria());
 
         noticia.setTitulo(titulo);
         noticia.setContenido(contenido);
-        noticia.setImagenUrl(imagen);
+        noticia.setImagen(imagen);
         noticia.setCategoria(datos.getCategoria());
         if (datos.getFechaPublicacion() != null) {
             anotar(cambios, "fechaPublicacion", noticia.getFechaPublicacion(), datos.getFechaPublicacion());
@@ -189,5 +192,10 @@ public class NoticiaService {
 
     private void registrar(String rut, String tipo, String descripcion, List<DetalleCambioDTO> cambios) {
         usuariosClient.registrarAccion(new RegistroAccionDTO(rut, tipo, MODULO, descripcion, cambios));
+    }
+
+    /** La imagen es opcional; si viene, tiene que haberse subido antes con POST /api/noticias/imagen. */
+    private String imagenOpcional(String nombre) {
+        return vacioANull(nombre) == null ? null : imagenService.validarNombre(nombre);
     }
 }

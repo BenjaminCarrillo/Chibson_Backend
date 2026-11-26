@@ -43,14 +43,15 @@ spring:
           # ---------- Rutas: qué microservicio atiende cada /api/... ----------
           routes:
             - id: ms-usuarios
-              uri: http://localhost:8081
+              uri: http://localhost:8091
               predicates:
                 - Path=/api/auth/**,/api/usuarios/**,/api/roles/**,/api/notificaciones/**,/api/acciones/**
 
             - id: ms-productos
               uri: http://localhost:8087
               predicates:
-                - Path=/api/productos/**,/api/resenas/**
+                # /imagenes/productos/** son las fotos de productos (carpeta uploads de ms-productos)
+                - Path=/api/productos/**,/api/resenas/**,/imagenes/productos/**
 
             - id: ms-ventas
               uri: http://localhost:8083
@@ -65,7 +66,8 @@ spring:
             - id: ms-contenido
               uri: http://localhost:8085
               predicates:
-                - Path=/api/noticias/**,/api/institucional/**
+                # /imagenes/noticias/** son las imágenes de noticias (carpeta uploads de ms-contenido)
+                - Path=/api/noticias/**,/api/institucional/**,/imagenes/noticias/**
 
             - id: ms-informes
               uri: http://localhost:8086

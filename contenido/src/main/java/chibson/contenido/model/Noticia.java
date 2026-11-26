@@ -1,5 +1,7 @@
 package chibson.contenido.model;
 
+import chibson.contenido.service.ImagenService;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -32,8 +34,12 @@ public class Noticia {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String contenido;
 
-    /** Opcional (HU-76). */
-    private String imagenUrl;
+    /**
+     * Opcional (HU-76). Nombre del archivo de la imagen dentro de la carpeta de imágenes de
+     * ms-contenido (por ejemplo "carrusel1.jpg"). No se guarda la ruta completa.
+     */
+    @Column(length = 80)
+    private String imagen;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -48,4 +54,9 @@ public class Noticia {
 
     /** Fecha de la última modificación (HU-74). */
     private LocalDateTime fechaModificacion;
+
+    /** Dirección para mostrar la imagen (/imagenes/noticias/<imagen>). Se arma, no se guarda en la base. */
+    public String getImagenUrl() {
+        return ImagenService.urlPublica(imagen);
+    }
 }

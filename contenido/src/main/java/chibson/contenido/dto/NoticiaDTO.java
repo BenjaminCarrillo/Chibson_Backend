@@ -14,7 +14,8 @@ import java.time.LocalDate;
 public class NoticiaDTO {
     private String titulo;
     private String contenido;
-    private String imagenUrl;
+    /** Opcional. Nombre que devolvió POST /api/noticias/imagen al subir la imagen. */
+    private String imagen;
     private CategoriaNoticia categoria;
     /** Opcional. Si no viene, al publicar se usa la fecha de hoy. */
     private LocalDate fechaPublicacion;

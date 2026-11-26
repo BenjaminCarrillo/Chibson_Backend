@@ -48,7 +48,8 @@ public class FiltroJwt implements GlobalFilter, Ordered {
             "/api/productos",
             "/api/resenas",
             "/api/noticias",
-            "/api/institucional");
+            "/api/institucional",
+            "/imagenes"); // fotos de productos y noticias
 
     private final JwtServicio jwtServicio;
 

@@ -21,6 +21,9 @@ public class ProductoRespuestaDTO {
     private Integer precio;
     private Categoria categoria;
     private EstadoProducto estado;
+    /** Nombre del archivo de la foto (lo que está guardado en la base de datos). */
+    private String imagen;
+    /** Dirección para mostrar la foto: /imagenes/productos/<imagen>. Se arma, no se guarda. */
     private String imagenUrl;
     /** Texto original de la ficha técnica. */
     private String fichaTecnica;

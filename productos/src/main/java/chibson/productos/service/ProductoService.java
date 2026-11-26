@@ -29,12 +29,14 @@ public class ProductoService {
     private final ProductoRepository productoRepository;
     private final UsuariosClient usuariosClient;
     private final VentasClient ventasClient;
+    private final ImagenService imagenService;
 
     public ProductoService(ProductoRepository productoRepository, UsuariosClient usuariosClient,
-                           VentasClient ventasClient) {
+                           VentasClient ventasClient, ImagenService imagenService) {
         this.productoRepository = productoRepository;
         this.usuariosClient = usuariosClient;
         this.ventasClient = ventasClient;
+        this.imagenService = imagenService;
     }
 
     // ---------- Catálogo público ----------
@@ -115,7 +117,7 @@ public class ProductoService {
         anotar(cambios, "descripcion", producto.getDescripcion(), vacioANull(datos.getDescripcion()));
         anotar(cambios, "precio", producto.getPrecio(), datos.getPrecio());
         anotar(cambios, "categoria", producto.getCategoria(), datos.getCategoria());
-        anotar(cambios, "imagenUrl", producto.getImagenUrl(), datos.getImagenUrl().trim());
+        anotar(cambios, "imagen", producto.getImagen(), datos.getImagen().trim());
         copiarDatos(datos, producto);
         producto.setFechaModificacion(LocalDateTime.now());
         Producto guardado = productoRepository.save(producto);
@@ -177,7 +179,7 @@ public class ProductoService {
     /** Arma la respuesta con stock y ficha técnica interpretada. */
     public ProductoRespuestaDTO aRespuesta(Producto p) {
         return new ProductoRespuestaDTO(p.getSku(), p.getModelo(), p.getMarca(), p.getDescripcion(), p.getPrecio(),
-                p.getCategoria(), p.getEstado(), p.getImagenUrl(), p.getFichaTecnica(),
+                p.getCategoria(), p.getEstado(), p.getImagen(), ImagenService.urlPublica(p.getImagen()), p.getFichaTecnica(),
                 FichaTecnica.interpretar(p.getFichaTecnica()), p.getStockDisponible(), p.getStockMinimo(),
                 p.esBajoStock(), p.estaAgotado(), p.getFechaModificacion(), p.getFechaModificacionFicha());
     }
@@ -224,7 +226,8 @@ public class ProductoService {
     private void validar(ProductoDTO datos) {
         obligatorio(datos.getModelo(), "El modelo es obligatorio");
         obligatorio(datos.getMarca(), "La marca es obligatoria");
-        obligatorio(datos.getImagenUrl(), "La imagen es obligatoria");
+        // La foto tiene que haberse subido antes con POST /api/productos/imagen
+        datos.setImagen(imagenService.validarNombre(datos.getImagen()));
         if (datos.getPrecio() == null || datos.getPrecio() <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El precio debe ser mayor que cero");
         }
@@ -239,7 +242,7 @@ public class ProductoService {
         producto.setDescripcion(vacioANull(datos.getDescripcion()));
         producto.setPrecio(datos.getPrecio());
         producto.setCategoria(datos.getCategoria());
-        producto.setImagenUrl(datos.getImagenUrl().trim());
+        producto.setImagen(datos.getImagen().trim());
     }
 
     private void validarNoNegativo(Integer valor, String campo) {

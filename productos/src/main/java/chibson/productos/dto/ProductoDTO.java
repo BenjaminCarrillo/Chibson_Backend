@@ -15,7 +15,8 @@ public class ProductoDTO {
     private String descripcion;
     private Integer precio;
     private Categoria categoria;
-    private String imagenUrl;
+    /** Nombre que devolvió POST /api/productos/imagen al subir la foto. */
+    private String imagen;
     /** Al crear es el stock inicial; al editar, el nuevo stock disponible. */
     private Integer stockDisponible;
     /** Opcional al crear: si no viene, se usa 5. */

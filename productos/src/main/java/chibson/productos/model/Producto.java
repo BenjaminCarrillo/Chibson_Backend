@@ -55,8 +55,12 @@ public class Producto {
     @Column(nullable = false, length = 20)
     private EstadoProducto estado;
 
-    @Column(nullable = false)
-    private String imagenUrl;
+    /**
+     * Nombre del archivo de la foto dentro de la carpeta de imágenes de ms-productos
+     * (por ejemplo "stratocaster.png" o "3f2a9c...png"). No se guarda la ruta completa.
+     */
+    @Column(nullable = false, length = 80)
+    private String imagen;
 
     /** Texto con formato clave:valor;clave:valor (HU-05). */
     @Column(columnDefinition = "TEXT")
